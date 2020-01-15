@@ -1,5 +1,3 @@
-fmt:
+clean:
 	cargo fmt
-
-clippy:
 	cargo clippy -- -D warnings
