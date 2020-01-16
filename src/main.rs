@@ -7,9 +7,10 @@ use piston_window::{Event, EventSettings, Events, Input, Loop};
 
 fn main() {
     let mut game_world = World::default();
+    let mut game_view = View::default();
     let mut events = Events::new(EventSettings::new());
 
-    while let Some(event) = events.next(game_world.window()) {
+    while let Some(event) = events.next(&mut game_view.window) {
         match event {
             Event::Input(input_event, _0) => {
                 if let Input::Button(key) = input_event {
@@ -19,9 +20,9 @@ fn main() {
             Event::Loop(loop_event) => match loop_event {
                 //                Loop::Update(_) => game.update(),
                 Loop::Render(_) => {
-                    game_world.window().draw_2d(&event, |context, graphics, _| {
+                    game_view.window.draw_2d(&event, |context, graphics, _| {
                         //                        let transform = context.transform.trans(0.0, 0.0);
-                        //                        game.render(context, transform, graphics);
+                        game_world.render(context, graphics);
                     });
                 }
                 _ => {}

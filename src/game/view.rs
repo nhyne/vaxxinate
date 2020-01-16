@@ -1,7 +1,7 @@
 use piston_window::{PistonWindow, WindowSettings};
 
 const WINDOW_WIDTH: f64 = 1600.0;
-const WINDOW_HEIGHT: f64 = 1000.0;
+const WINDOW_HEIGHT: f64 = 900.0;
 
 pub struct View {
     pub window: PistonWindow,

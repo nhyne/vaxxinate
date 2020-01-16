@@ -18,7 +18,6 @@ const CHARACTER_RENDER_WIDTH: f64 = CHARACTER_BODY_WIDTH * 2.0;
 const CHARACTER_RENDER_HEIGHT: f64 = CHARACTER_BODY_HEIGHT * 2.0;
 
 pub struct Character {
-    name: &'static str,
     // It is possible to get the body handle from the collider handle following the example below
     //      Assuming `collider_handle` is a valid handle of a collider previously added to the world.
     //      let collider = collider_set.get(collider_handle).expect("Collider not found.");
@@ -52,10 +51,9 @@ impl Character {
         let collider_handle = collider_set.insert(character_collider);
 
         Character {
-            name: "something",
             body_handle,
             collider_handle,
-            shape: Rectangle::new([0.0, 0.0, 0.0, 1.0]), // Black color
+            shape: Rectangle::new(BLACK),
         }
     }
 }

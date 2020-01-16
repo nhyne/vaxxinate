@@ -1,9 +1,8 @@
 use crate::game::player::character::Character;
-use crate::game::view::View;
 use nalgebra::Vector2;
 use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
-use piston_window::PistonWindow;
+use piston_window::{clear, Context, Graphics};
 
 pub struct World {
     mechanical_world: DefaultMechanicalWorld<f64>,
@@ -11,7 +10,6 @@ pub struct World {
     body_set: DefaultBodySet<f64>,
     collider_set: DefaultColliderSet<f64>,
     character: Character,
-    view: View,
 }
 
 impl World {
@@ -25,12 +23,12 @@ impl World {
             body_set,
             collider_set,
             character,
-            view: View::default(),
         }
     }
 
-    pub fn window(&mut self) -> &mut PistonWindow {
-        &mut self.view.window
+    pub fn render<G: Graphics>(&self, _context: Context, graphics: &mut G) {
+        clear([0.8, 0.8, 0.8, 1.0], graphics);
+        graphics.clear_stencil(0);
     }
 }
 
