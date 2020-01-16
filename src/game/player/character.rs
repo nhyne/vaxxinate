@@ -1,7 +1,5 @@
 use crate::game::renderable::Renderable;
 
-use piston_window::{Graphics, Context, Rectangle};
-use piston_window::math::Matrix2d;
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
@@ -9,8 +7,9 @@ use nphysics2d::object::{
     BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderHandle,
     DefaultColliderSet, RigidBodyDesc,
 };
+use piston_window::math::Matrix2d;
+use piston_window::{Context, Graphics, Rectangle};
 use std::borrow::Borrow;
-
 
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const CHARACTER_BODY_WIDTH: f64 = 20.0;
@@ -62,20 +61,26 @@ impl Character {
 }
 
 impl Renderable for Character {
-    fn render<G: Graphics>(&self, context: Context, transform: Matrix2d, graphics: &mut G, world: &DefaultBodySet<f64>) {
+    fn render<G: Graphics>(
+        &self,
+        context: Context,
+        transform: Matrix2d,
+        graphics: &mut G,
+        world: &DefaultBodySet<f64>,
+    ) {
         if let Some(body) = world.rigid_body(self.body_handle) {
             let character_body = body.borrow();
             let position = character_body.position().translation.vector;
             self.shape.draw(
                 [
-                        position[0] - CHARACTER_BODY_WIDTH,
-                        position[1] - CHARACTER_BODY_HEIGHT,
-                        CHARACTER_RENDER_WIDTH,
-                        CHARACTER_RENDER_HEIGHT,
-                    ],
-                    &context.draw_state,
-                    transform,
-                    graphics,
+                    position[0] - CHARACTER_BODY_WIDTH,
+                    position[1] - CHARACTER_BODY_HEIGHT,
+                    CHARACTER_RENDER_WIDTH,
+                    CHARACTER_RENDER_HEIGHT,
+                ],
+                &context.draw_state,
+                transform,
+                graphics,
             )
         }
     }

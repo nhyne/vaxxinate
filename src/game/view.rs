@@ -1,10 +1,10 @@
 use piston_window::{PistonWindow, WindowSettings};
 
-const WINDOW_WIDTH : f64 = 1600.0;
-const WINDOW_HEIGHT : f64 = 1000.0;
+const WINDOW_WIDTH: f64 = 1600.0;
+const WINDOW_HEIGHT: f64 = 1000.0;
 
 pub struct View {
-    pub window : PistonWindow,
+    pub window: PistonWindow,
 }
 
 impl View {
@@ -14,9 +14,7 @@ impl View {
             .samples(4)
             .build()
             .unwrap();
-        View {
-            window
-        }
+        View { window }
     }
 }
 
