@@ -1,3 +1,7 @@
+use crate::game::renderable::Renderable;
+
+use piston_window::{Graphics, Context, Rectangle};
+use piston_window::math::Matrix2d;
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
@@ -5,9 +9,14 @@ use nphysics2d::object::{
     BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderHandle,
     DefaultColliderSet, RigidBodyDesc,
 };
+use std::borrow::Borrow;
 
-const PLAYER_BODY_WIDTH: f64 = 20.0;
-const PLAYER_BODY_HEIGHT: f64 = 20.0;
+
+const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+const CHARACTER_BODY_WIDTH: f64 = 20.0;
+const CHARACTER_BODY_HEIGHT: f64 = 20.0;
+const CHARACTER_RENDER_WIDTH: f64 = CHARACTER_BODY_WIDTH * 2.0;
+const CHARACTER_RENDER_HEIGHT: f64 = CHARACTER_BODY_HEIGHT * 2.0;
 
 pub struct Character {
     name: &'static str,
@@ -17,6 +26,7 @@ pub struct Character {
     //      let body_handle = collider.body();
     body_handle: DefaultBodyHandle,
     collider_handle: DefaultColliderHandle,
+    shape: Rectangle,
 }
 
 impl Character {
@@ -25,8 +35,8 @@ impl Character {
         collider_set: &mut DefaultColliderSet<f64>,
     ) -> Character {
         let character_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
-            PLAYER_BODY_WIDTH,
-            PLAYER_BODY_HEIGHT,
+            CHARACTER_BODY_WIDTH,
+            CHARACTER_BODY_HEIGHT,
         )));
 
         let character_collider = ColliderDesc::new(character_shape)
@@ -46,6 +56,27 @@ impl Character {
             name: "something",
             body_handle,
             collider_handle,
+            shape: Rectangle::new([0.0, 0.0, 0.0, 1.0]), // Black color
+        }
+    }
+}
+
+impl Renderable for Character {
+    fn render<G: Graphics>(&self, context: Context, transform: Matrix2d, graphics: &mut G, world: &DefaultBodySet<f64>) {
+        if let Some(body) = world.rigid_body(self.body_handle) {
+            let character_body = body.borrow();
+            let position = character_body.position().translation.vector;
+            self.shape.draw(
+                [
+                        position[0] - CHARACTER_BODY_WIDTH,
+                        position[1] - CHARACTER_BODY_HEIGHT,
+                        CHARACTER_RENDER_WIDTH,
+                        CHARACTER_RENDER_HEIGHT,
+                    ],
+                    &context.draw_state,
+                    transform,
+                    graphics,
+            )
         }
     }
 }

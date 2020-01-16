@@ -1,4 +1,4 @@
-use super::player::character::Character;
+use crate::game::player::character::Character;
 use nalgebra::Vector2;
 use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
