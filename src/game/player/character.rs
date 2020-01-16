@@ -31,6 +31,7 @@ impl Character {
     pub fn new(
         body_set: &mut DefaultBodySet<f64>,
         collider_set: &mut DefaultColliderSet<f64>,
+        position: (f64, f64),
     ) -> Character {
         let character_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
             CHARACTER_BODY_WIDTH,
@@ -42,7 +43,7 @@ impl Character {
             .material(MaterialHandle::new(BasicMaterial::new(0.0, 0.0)));
 
         let character_body = RigidBodyDesc::new()
-            .position(Isometry2::translation(10.0, 10.1))
+            .position(Isometry2::translation(position.0, position.1))
             .build();
 
         let body_handle = body_set.insert(character_body);

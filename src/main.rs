@@ -21,8 +21,8 @@ fn main() {
                 //                Loop::Update(_) => game.update(),
                 Loop::Render(_) => {
                     game_view.window.draw_2d(&event, |context, graphics, _| {
-                        //                        let transform = context.transform.trans(0.0, 0.0);
-                        game_world.render(context, graphics);
+                        let transform = context.transform;
+                        game_world.render(context, transform, graphics);
                     });
                 }
                 _ => {}
