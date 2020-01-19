@@ -1,12 +1,12 @@
 use crate::game::player::character::Character;
 use crate::game::renderable::Renderable;
-use nalgebra::Vector2;
 use nalgebra::geometry::Rotation2;
+use nalgebra::Vector2;
 use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use piston_window::math::Matrix2d;
-use piston_window::{clear, Context, Graphics, Motion, ButtonArgs};
 use piston_window::Motion::*;
+use piston_window::{clear, ButtonArgs, Context, Graphics, Motion};
 
 pub struct World {
     mechanical_world: DefaultMechanicalWorld<f64>,
@@ -41,18 +41,16 @@ impl World {
     pub fn handle_mouse(&self, motion: Motion) {
         match motion {
             Motion::MouseCursor(motion) => println!("{:#?}", motion),
-            _ => {},
+            _ => {}
         }
         // Want to change the rotation of the player
-
     }
 
     pub fn handle_key_press(&self, key: ButtonArgs) {
         println!("{:#?}", key)
     }
 
-    fn calculate_player_rotation(&self, mouse_position: [f64; 2]) {
-    }
+    fn calculate_player_rotation(&self, mouse_position: [f64; 2]) {}
 }
 
 impl Default for World {
