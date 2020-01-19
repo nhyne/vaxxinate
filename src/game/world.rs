@@ -44,6 +44,7 @@ impl World {
             _ => {}
         }
         // Want to change the rotation of the player
+        // Should just set the rotation of the player and the the player render function actually handle rendering
     }
 
     pub fn handle_key_press(&self, key: ButtonArgs) {

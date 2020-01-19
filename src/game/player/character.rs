@@ -8,7 +8,7 @@ use nphysics2d::object::{
     DefaultColliderSet, RigidBodyDesc,
 };
 use piston_window::math::Matrix2d;
-use piston_window::{Context, Graphics, Rectangle};
+use piston_window::{Context, Graphics, Rectangle, Transformed};
 use std::borrow::Borrow;
 
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -25,6 +25,7 @@ pub struct Character {
     body_handle: DefaultBodyHandle,
     collider_handle: DefaultColliderHandle,
     shape: Rectangle,
+    rotation: f64,
 }
 
 impl Character {
@@ -55,6 +56,7 @@ impl Character {
             body_handle,
             collider_handle,
             shape: Rectangle::new(BLACK),
+            rotation: 0.0,
         }
     }
 }
@@ -68,8 +70,14 @@ impl Renderable for Character {
         world: &DefaultBodySet<f64>,
     ) {
         if let Some(body) = world.rigid_body(self.body_handle) {
+            //TODO Cleanup this function
             let character_body = body.borrow();
             let position = character_body.position().translation.vector;
+            let rotation = character_body.position().rotation.angle();
+            let rotation_transform = transform
+                .trans(position[0], position[1])
+                .rot_deg(rotation + 45.0)
+                .trans(-position[0], -position[1]);
             self.shape.draw(
                 [
                     position[0] - CHARACTER_BODY_WIDTH,
@@ -78,7 +86,7 @@ impl Renderable for Character {
                     CHARACTER_RENDER_HEIGHT,
                 ],
                 &context.draw_state,
-                transform,
+                rotation_transform,
                 graphics,
             )
         }

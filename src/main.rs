@@ -4,7 +4,7 @@ extern crate vecmath;
 use zombies::game::view::View;
 use zombies::game::world::World;
 
-use piston_window::{Event, EventSettings, Events, Input, Loop, Transformed};
+use piston_window::{Event, EventSettings, Events, Input, Loop};
 use vecmath::mat2x3_add;
 
 fn main() {
@@ -24,12 +24,7 @@ fn main() {
                 //                Loop::Update(_) => game.update(),
                 Loop::Render(_) => {
                     game_view.window.draw_2d(&event, |context, graphics, _| {
-                        let transform = context
-                            .transform
-                            .trans(50.0, 50.0)
-                            .rot_deg(frame)
-                            .trans(-50.0, -50.0);
-                        game_world.render(context, transform, graphics);
+                        game_world.render(context, context.transform, graphics);
                     });
                 }
                 _ => {}
