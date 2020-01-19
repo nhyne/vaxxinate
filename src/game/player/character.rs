@@ -1,6 +1,6 @@
 use crate::game::renderable::Renderable;
 
-use nalgebra::{Isometry2, Vector2};
+use nalgebra::{Complex, Isometry2, Rotation2, Unit, UnitComplex, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::object::{
@@ -59,6 +59,34 @@ impl Character {
             rotation: 0.0,
         }
     }
+
+    pub fn update_rotation(&mut self, mouse_position: [f64; 2], world: &mut DefaultBodySet<f64>) {
+        self.rotation = self.rotation + 0.01;
+        println!("Rotation is: {}", self.rotation);
+        if let Some(character_body) = world.rigid_body_mut(self.body_handle) {
+            let position = character_body.position().translation.vector;
+            let (char_x_pos, char_y_pos) = (position[0], position[1]);
+            let [mouse_x_pos, mouse_y_pos] = mouse_position;
+            let x_diff = mouse_x_pos - char_x_pos;
+            let y_diff = mouse_y_pos - char_y_pos;
+            match (x_diff, y_diff) {
+                (0.0, y) => {
+                    // We're on the same x axis so we need to look straight up or down based on if y is positive or negative
+                    if y >= 0.0 {
+                    } else {
+                    }
+                }
+                (x, 0.0) => {
+                    // We're on the same y axis so we need to look right or left based on if x is positive or negative
+                }
+                (x, y) => {
+                    character_body.set_position(Isometry2::new(position, self.rotation));
+                    // = UnitComplex::new(45.0);
+                    // Not on matching axes, need to compute angle
+                }
+            }
+        }
+    }
 }
 
 impl Renderable for Character {
@@ -73,15 +101,17 @@ impl Renderable for Character {
             //TODO Cleanup this function
             let character_body = body.borrow();
             let position = character_body.position().translation.vector;
+            let (x_pos, y_pos) = (position[0], position[1]);
             let rotation = character_body.position().rotation.angle();
             let rotation_transform = transform
-                .trans(position[0], position[1])
-                .rot_deg(rotation + 45.0)
-                .trans(-position[0], -position[1]);
+                .trans(x_pos, y_pos)
+                // This 45.0 is just for testing. Should be removed.
+                .rot_rad(rotation)
+                .trans(-x_pos, -y_pos);
             self.shape.draw(
                 [
-                    position[0] - CHARACTER_BODY_WIDTH,
-                    position[1] - CHARACTER_BODY_HEIGHT,
+                    x_pos - CHARACTER_BODY_WIDTH,
+                    y_pos - CHARACTER_BODY_HEIGHT,
                     CHARACTER_RENDER_WIDTH,
                     CHARACTER_RENDER_HEIGHT,
                 ],

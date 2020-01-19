@@ -38,9 +38,12 @@ impl World {
             .render(context, transform, graphics, &self.body_set)
     }
 
-    pub fn handle_mouse(&self, motion: Motion) {
+    pub fn handle_mouse(&mut self, motion: Motion) {
         match motion {
-            Motion::MouseCursor(motion) => println!("{:#?}", motion),
+            Motion::MouseCursor(motion) => {
+                println!("Mouse is in motion!: {:#?}", motion);
+                self.character.update_rotation(motion, &mut self.body_set);
+            }
             _ => {}
         }
         // Want to change the rotation of the player
@@ -50,8 +53,6 @@ impl World {
     pub fn handle_key_press(&self, key: ButtonArgs) {
         println!("{:#?}", key)
     }
-
-    fn calculate_player_rotation(&self, mouse_position: [f64; 2]) {}
 }
 
 impl Default for World {
