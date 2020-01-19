@@ -61,6 +61,7 @@ impl Character {
     }
 
     pub fn update_rotation(&mut self, mouse_position: [f64; 2], world: &mut DefaultBodySet<f64>) {
+        use std::f64;
         self.rotation = self.rotation + 0.01;
         println!("Rotation is: {}", self.rotation);
         if let Some(character_body) = world.rigid_body_mut(self.body_handle) {
@@ -73,10 +74,18 @@ impl Character {
                 (0.0, y) => {
                     // We're on the same x axis so we need to look straight up or down based on if y is positive or negative
                     if y >= 0.0 {
+                        character_body.set_position(Isometry2::new(position, f64::consts::FRAC_PI_2));
                     } else {
+                       character_body.set_position(Isometry2::new(position, f64::consts::FRAC_PI_2 * 3.0));
                     }
                 }
                 (x, 0.0) => {
+                    if x >= 0.0 {
+                        character_body.set_position(Isometry2::new(position, 0.0));
+                    } else {
+
+                        character_body.set_position(Isometry2::new(position, f64::consts::PI));
+                    }
                     // We're on the same y axis so we need to look right or left based on if x is positive or negative
                 }
                 (x, y) => {
