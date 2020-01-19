@@ -18,7 +18,7 @@ impl World {
     pub fn new() -> World {
         let mut body_set: DefaultBodySet<f64> = DefaultBodySet::new();
         let mut collider_set: DefaultColliderSet<f64> = DefaultColliderSet::new();
-        let character = Character::new(&mut body_set, &mut collider_set, (50.0, 50.0));
+        let character = Character::new(&mut body_set, &mut collider_set, (100.0, 100.0));
         World {
             mechanical_world: DefaultMechanicalWorld::new(Vector2::new(0.0, 0.0)),
             geometric_world: DefaultGeometricalWorld::new(),

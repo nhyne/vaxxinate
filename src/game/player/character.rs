@@ -73,21 +73,7 @@ impl Character {
 
             // Not sure why this is negative. The cube rotated the opposite direction without it
             let tangent = -(x_diff / y_diff).atan();
-
-            // TODO: Still have to figure out adding radians. Right now it's impossible to tell since the cube has no "front"
-            if y_diff >= 0.0 && x_diff >= 0.0 {
-                // Mouse is the top right quadrant (no need to add radians)
-                character_body.set_position(Isometry2::new(position, tangent));
-            } else if y_diff >= 0.0 && x_diff < 0.0 {
-                // Mouse is in the top left quadrant (need to add radians)
-                character_body.set_position(Isometry2::new(position, tangent));
-            } else if y_diff < 0.0 && x_diff < 0.0 {
-                // Mouse is in the bottom left quadrant (need to add radians)
-                character_body.set_position(Isometry2::new(position, tangent));
-            } else {
-                // Mouse is in the bottom right quadrant (need to add radians)
-                character_body.set_position(Isometry2::new(position, tangent));
-            }
+            character_body.set_position(Isometry2::new(position, tangent));
         }
     }
 }
