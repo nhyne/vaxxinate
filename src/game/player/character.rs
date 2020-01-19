@@ -51,6 +51,7 @@ impl Character {
 
         let character_body = RigidBodyDesc::new()
             .position(Isometry2::translation(position.0, position.1))
+            .linear_damping(1.0)
             .build();
 
         let body_handle = body_set.insert(character_body);
