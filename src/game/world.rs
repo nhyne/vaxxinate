@@ -1,11 +1,9 @@
 use crate::game::player::character::Character;
 use crate::game::renderable::Renderable;
-use nalgebra::geometry::Rotation2;
 use nalgebra::Vector2;
 use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use piston_window::math::Matrix2d;
-use piston_window::Motion::*;
 use piston_window::{clear, ButtonArgs, Context, Graphics, Motion};
 
 pub struct World {

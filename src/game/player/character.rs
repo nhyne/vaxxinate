@@ -1,6 +1,6 @@
 use crate::game::renderable::Renderable;
 
-use nalgebra::{Complex, Isometry2, Rotation2, Unit, UnitComplex, Vector2};
+use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::object::{
@@ -61,7 +61,7 @@ impl Character {
     }
 
     pub fn update_rotation(&mut self, mouse_position: [f64; 2], world: &mut DefaultBodySet<f64>) {
-        use std::f64;
+        //        use std::f64;
         self.rotation = self.rotation + 0.01;
         println!("Rotation is: {}", self.rotation);
         if let Some(character_body) = world.rigid_body_mut(self.body_handle) {
@@ -70,29 +70,23 @@ impl Character {
             let [mouse_x_pos, mouse_y_pos] = mouse_position;
             let x_diff = mouse_x_pos - char_x_pos;
             let y_diff = mouse_y_pos - char_y_pos;
-            match (x_diff, y_diff) {
-                (0.0, y) => {
-                    // We're on the same x axis so we need to look straight up or down based on if y is positive or negative
-                    if y >= 0.0 {
-                        character_body.set_position(Isometry2::new(position, f64::consts::FRAC_PI_2));
-                    } else {
-                       character_body.set_position(Isometry2::new(position, f64::consts::FRAC_PI_2 * 3.0));
-                    }
-                }
-                (x, 0.0) => {
-                    if x >= 0.0 {
-                        character_body.set_position(Isometry2::new(position, 0.0));
-                    } else {
 
-                        character_body.set_position(Isometry2::new(position, f64::consts::PI));
-                    }
-                    // We're on the same y axis so we need to look right or left based on if x is positive or negative
-                }
-                (x, y) => {
-                    character_body.set_position(Isometry2::new(position, self.rotation));
-                    // = UnitComplex::new(45.0);
-                    // Not on matching axes, need to compute angle
-                }
+            // Not sure why this is negative. The cube rotated the opposite direction without it
+            let tangent = -(x_diff / y_diff).atan();
+
+            // TODO: Still have to figure out adding radians. Right now it's impossible to tell since the cube has no "front"
+            if y_diff >= 0.0 && x_diff >= 0.0 {
+                // Mouse is the top right quadrant (no need to add radians)
+                character_body.set_position(Isometry2::new(position, tangent));
+            } else if y_diff >= 0.0 && x_diff < 0.0 {
+                // Mouse is in the top left quadrant (need to add radians)
+                character_body.set_position(Isometry2::new(position, tangent));
+            } else if y_diff < 0.0 && x_diff < 0.0 {
+                // Mouse is in the bottom left quadrant (need to add radians)
+                character_body.set_position(Isometry2::new(position, tangent));
+            } else {
+                // Mouse is in the bottom right quadrant (need to add radians)
+                character_body.set_position(Isometry2::new(position, tangent));
             }
         }
     }
@@ -114,7 +108,6 @@ impl Renderable for Character {
             let rotation = character_body.position().rotation.angle();
             let rotation_transform = transform
                 .trans(x_pos, y_pos)
-                // This 45.0 is just for testing. Should be removed.
                 .rot_rad(rotation)
                 .trans(-x_pos, -y_pos);
             self.shape.draw(
