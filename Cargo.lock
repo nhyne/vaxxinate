@@ -1579,6 +1579,8 @@ dependencies = [
  "ncollide2d 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nphysics2d 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston_window 0.105.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-input 0.28.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "vecmath 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [metadata]
