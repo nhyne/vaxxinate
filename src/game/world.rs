@@ -39,7 +39,6 @@ impl World {
     pub fn handle_mouse(&mut self, motion: Motion) {
         match motion {
             Motion::MouseCursor(motion) => {
-                println!("Mouse is in motion!: {:#?}", motion);
                 self.character.update_rotation(motion, &mut self.body_set);
             }
             _ => {}

@@ -63,7 +63,6 @@ impl Character {
     pub fn update_rotation(&mut self, mouse_position: [f64; 2], world: &mut DefaultBodySet<f64>) {
         //        use std::f64;
         self.rotation = self.rotation + 0.01;
-        println!("Rotation is: {}", self.rotation);
         if let Some(character_body) = world.rigid_body_mut(self.body_handle) {
             let position = character_body.position().translation.vector;
             let (char_x_pos, char_y_pos) = (position[0], position[1]);
