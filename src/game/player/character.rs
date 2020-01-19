@@ -13,10 +13,12 @@ use nphysics2d::object::{
     DefaultColliderSet,
     RigidBodyDesc,
 };
+use opengl_graphics::{Texture, TextureSettings};
 use piston_window::math::Matrix2d;
 use piston_window::{Context, Graphics, Key, Rectangle, Transformed};
 use std::borrow::Borrow;
 use std::collections::HashSet;
+use std::path::Path;
 
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const CHARACTER_BODY_WIDTH: f64 = 20.0;
@@ -32,6 +34,7 @@ pub struct Character {
     body_handle: DefaultBodyHandle,
     //    collider_handle: DefaultColliderHandle,
     shape: Rectangle,
+    player_image: Texture,
 }
 
 impl Character {
@@ -59,10 +62,14 @@ impl Character {
         let character_collider = character_collider.build(BodyPartHandle(body_handle, 0));
         let _collider_handle = collider_set.insert(character_collider);
 
+        let player_image =
+            Texture::from_path(&Path::new("./assets/player.png"), &TextureSettings::new()).unwrap();
+
         Character {
             body_handle,
             //            collider_handle,
             shape: Rectangle::new(BLACK),
+            player_image,
         }
     }
 
@@ -133,6 +140,7 @@ impl Renderable for Character {
         graphics: &mut G,
         world: &DefaultBodySet<f64>,
     ) {
+        use graphics::image;
         if let Some(body) = world.rigid_body(self.body_handle) {
             //TODO Cleanup this function
             let character_body = body.borrow();
@@ -153,7 +161,8 @@ impl Renderable for Character {
                 &context.draw_state,
                 rotation_transform,
                 graphics,
-            )
+            );
+            image(&self.player_image, transform, graphics);
         }
     }
 }

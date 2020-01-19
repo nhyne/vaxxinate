@@ -1,3 +1,4 @@
+use opengl_graphics::{GlGraphics, OpenGL};
 use piston_window::{PistonWindow, WindowSettings};
 
 const WINDOW_WIDTH: f64 = 1600.0;
@@ -5,16 +6,23 @@ const WINDOW_HEIGHT: f64 = 900.0;
 
 pub struct View {
     pub window: PistonWindow,
+    pub gl_graphics: GlGraphics,
 }
 
 impl View {
     pub fn new() -> View {
-        let window = WindowSettings::new("zombies", [WINDOW_WIDTH, WINDOW_HEIGHT])
+        let open_gl = OpenGL::V3_2;
+        let window = WindowSettings::new("Zombies", [WINDOW_WIDTH, WINDOW_HEIGHT])
             .exit_on_esc(true)
-            .samples(4)
+            .graphics_api(open_gl)
             .build()
             .unwrap();
-        View { window }
+        let mut gl_graphics = GlGraphics::new(open_gl);
+
+        View {
+            window,
+            gl_graphics,
+        }
     }
 }
 
