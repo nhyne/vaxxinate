@@ -1,6 +1,6 @@
 use crate::game::renderable::Renderable;
 
-use graphics::{Context, Graphics, ImageSize};
+use graphics::{Context, Graphics, image};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::{Force2, ForceType};
@@ -10,13 +10,13 @@ use nphysics2d::object::{
     BodyPartHandle,
     ColliderDesc,
     DefaultBodyHandle,
-    DefaultBodySet, //DefaultColliderHandle,
+    DefaultBodySet,
     DefaultColliderSet,
     RigidBodyDesc,
 };
-use opengl_graphics::{Texture, TextureSettings};
 use piston_window::math::Matrix2d;
 use piston_window::{Key, Rectangle, Transformed};
+use opengl_graphics::{TextureSettings, Texture, ImageSize};
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::path::Path;
@@ -63,7 +63,7 @@ impl Character {
         let character_collider = character_collider.build(BodyPartHandle(body_handle, 0));
         let _collider_handle = collider_set.insert(character_collider);
 
-        let player_image =
+        let player_image  =
             Texture::from_path(&Path::new("./assets/player.png"), &TextureSettings::new()).unwrap();
 
         Character {
@@ -141,7 +141,6 @@ impl Renderable for Character {
         graphics: &mut G,
         world: &DefaultBodySet<f64>,
     ) {
-        use graphics::image;
         if let Some(body) = world.rigid_body(self.body_handle) {
             //TODO Cleanup this function
             let character_body = body.borrow();

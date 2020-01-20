@@ -1,8 +1,7 @@
 use nphysics2d::object::DefaultBodySet;
 use piston_window::math::Matrix2d;
-//use piston_window::{Context, Graphics};
-use graphics::{Context, Graphics, ImageSize};
-use opengl_graphics::Texture;
+use graphics::{Context, Graphics};
+use opengl_graphics::{Texture, ImageSize};
 
 pub trait Renderable {
     fn render<G: Graphics<Texture = T>, T: ImageSize>(
