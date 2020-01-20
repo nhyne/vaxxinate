@@ -34,7 +34,7 @@ pub struct Character {
     //    collider_handle: DefaultColliderHandle,
     shape: Rectangle,
     player_image: Texture,
-    _sprite_uuid: Uuid,
+    sprite_uuid: Uuid,
 }
 
 impl Character {
@@ -74,7 +74,7 @@ impl Character {
             //            collider_handle,
             shape: Rectangle::new(BLACK),
             player_image,
-            _sprite_uuid: sprite_uuid,
+            sprite_uuid,
         }
     }
 
@@ -94,7 +94,12 @@ impl Character {
         scene.add_child(sprite)
     }
 
-    pub fn update(&mut self, world: &mut DefaultBodySet<f64>, keys_pressed: &HashSet<Key>) {
+    pub fn update(
+        &mut self,
+        world: &mut DefaultBodySet<f64>,
+        keys_pressed: &HashSet<Key>,
+        scene: &mut Scene<Texture>,
+    ) {
         if keys_pressed.contains(&Key::W) {
             self.move_up(world);
         }
@@ -107,10 +112,23 @@ impl Character {
         if keys_pressed.contains(&Key::S) {
             self.move_down(world);
         }
+
+        if let Some(char_sprite) = scene.child_mut(self.sprite_uuid) {
+            if let Some(rigid_body) = world.rigid_body(self.body_handle) {
+                let rigid_body_pos = rigid_body.position().translation.vector;
+                let (x_pos, y_pos) = (rigid_body_pos[0], rigid_body_pos[1]);
+                char_sprite.set_position(x_pos, y_pos);
+
+                let char_rotation = rigid_body.position().rotation.angle();
+                // char_rotation comes back in radians, converting to degrees (what set_rotation expects)
+                let rotation = char_rotation * 57.29578;
+                char_sprite.set_rotation(rotation);
+            }
+        }
     }
 
     pub fn update_rotation(&mut self, mouse_position: [f64; 2], world: &mut DefaultBodySet<f64>) {
-        //        use std::f64;
+        use std::f64;
         if let Some(character_body) = world.rigid_body_mut(self.body_handle) {
             let position = character_body.position().translation.vector;
             let (char_x_pos, char_y_pos) = (position[0], position[1]);
@@ -118,8 +136,15 @@ impl Character {
             let x_diff = mouse_x_pos - char_x_pos;
             let y_diff = mouse_y_pos - char_y_pos;
 
-            // Not sure why this is negative. The cube rotated the opposite direction without it
-            let tangent = -(x_diff / y_diff).atan();
+            let mut tangent = (y_diff / x_diff).atan();
+            // All the tangent addition/subtraction was trial and error
+            if x_diff >= 0.0 {
+                // We're in the first quadrant (bottom right of player) or the fourth quadrant (top right of player)
+                tangent += f64::consts::FRAC_PI_2;
+            } else {
+                // We're in the second quadrant (bottom left of player) or the third quadrant (top left of player)
+                tangent -= f64::consts::FRAC_PI_2;
+            }
             character_body.set_position(Isometry2::new(position, tangent));
         }
     }

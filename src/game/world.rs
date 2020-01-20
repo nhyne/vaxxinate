@@ -56,7 +56,7 @@ impl World {
 
     pub fn update(&mut self) {
         self.character
-            .update(&mut self.body_set, &self.keys_pressed);
+            .update(&mut self.body_set, &self.keys_pressed, &mut self.scene);
         self.mechanical_world.step(
             &mut self.geometric_world,
             &mut self.body_set,
@@ -73,8 +73,6 @@ impl World {
         graphics.clear_stencil(0);
 
         self.scene.draw(transform, graphics);
-        //        self.character
-        //            .render(context, transform, graphics, &self.body_set)
     }
 
     pub fn handle_mouse(&mut self, motion: Motion) {
