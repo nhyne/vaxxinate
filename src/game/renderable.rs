@@ -1,14 +1,14 @@
+use graphics::Context;
 use nphysics2d::object::DefaultBodySet;
+use opengl_graphics::GlGraphics;
 use piston_window::math::Matrix2d;
-use graphics::{Context, Graphics};
-use opengl_graphics::{Texture, ImageSize};
 
 pub trait Renderable {
-    fn render<G: Graphics<Texture = T>, T: ImageSize>(
+    fn render(
         &self,
         context: Context,
         transform: Matrix2d,
-        graphics: &mut G,
+        graphics: &mut GlGraphics,
         world: &DefaultBodySet<f64>,
     ) -> ();
 }

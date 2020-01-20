@@ -1,22 +1,17 @@
 use crate::game::renderable::Renderable;
 
-use graphics::{Context, Graphics, image};
+use graphics::{image, Context};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::{Force2, ForceType};
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::object::{
-    Body,
-    BodyPartHandle,
-    ColliderDesc,
-    DefaultBodyHandle,
-    DefaultBodySet,
-    DefaultColliderSet,
+    Body, BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet,
     RigidBodyDesc,
 };
+use opengl_graphics::{GlGraphics, Texture, TextureSettings};
 use piston_window::math::Matrix2d;
 use piston_window::{Key, Rectangle, Transformed};
-use opengl_graphics::{TextureSettings, Texture, ImageSize};
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::path::Path;
@@ -63,7 +58,7 @@ impl Character {
         let character_collider = character_collider.build(BodyPartHandle(body_handle, 0));
         let _collider_handle = collider_set.insert(character_collider);
 
-        let player_image  =
+        let player_image =
             Texture::from_path(&Path::new("./assets/player.png"), &TextureSettings::new()).unwrap();
 
         Character {
@@ -134,11 +129,11 @@ impl Character {
 }
 
 impl Renderable for Character {
-    fn render<G: Graphics<Texture = T>, T: ImageSize>(
+    fn render(
         &self,
         context: Context,
         transform: Matrix2d,
-        graphics: &mut G,
+        graphics: &mut GlGraphics,
         world: &DefaultBodySet<f64>,
     ) {
         if let Some(body) = world.rigid_body(self.body_handle) {
@@ -162,7 +157,7 @@ impl Renderable for Character {
                 rotation_transform,
                 graphics,
             );
-            image(&self.player_image, transform, graphics);
+            image(&self.player_image, rotation_transform, graphics);
         }
     }
 }

@@ -17,7 +17,7 @@ impl View {
             .graphics_api(open_gl)
             .build()
             .unwrap();
-        let mut gl_graphics = GlGraphics::new(open_gl);
+        let gl_graphics = GlGraphics::new(open_gl);
 
         View {
             window,

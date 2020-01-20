@@ -5,9 +5,9 @@ use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
 use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
+use opengl_graphics::GlGraphics;
 use piston_window::math::Matrix2d;
 use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
-use graphics::ImageSize;
 use std::collections::HashSet;
 
 pub struct World {
@@ -56,7 +56,7 @@ impl World {
             .update_rotation(self.mouse_position, &mut self.body_set);
     }
 
-    pub fn render<G: Graphics<Texture = T>, T: ImageSize>(&self, context: Context, transform: Matrix2d, graphics: &mut G) {
+    pub fn render(&self, context: Context, transform: Matrix2d, graphics: &mut GlGraphics) {
         clear([0.8, 0.8, 0.8, 1.0], graphics);
         graphics.clear_stencil(0);
 
