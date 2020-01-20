@@ -1,5 +1,6 @@
 use crate::game::renderable::Renderable;
 
+use graphics::{Context, Graphics, ImageSize};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::{Force2, ForceType};
@@ -15,7 +16,7 @@ use nphysics2d::object::{
 };
 use opengl_graphics::{Texture, TextureSettings};
 use piston_window::math::Matrix2d;
-use piston_window::{Context, Graphics, Key, Rectangle, Transformed};
+use piston_window::{Key, Rectangle, Transformed};
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::path::Path;
@@ -133,7 +134,7 @@ impl Character {
 }
 
 impl Renderable for Character {
-    fn render<G: Graphics>(
+    fn render<G: Graphics<Texture = T>, T: ImageSize>(
         &self,
         context: Context,
         transform: Matrix2d,

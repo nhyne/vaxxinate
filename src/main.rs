@@ -25,14 +25,17 @@ fn main() {
             Event::Loop(loop_event) => match loop_event {
                 Loop::Update(_) => game_world.update(),
                 Loop::Render(_) => {
-                    if let Some(args) = event.render_args() {
-                        game_view
-                            .gl_graphics
-                            .draw(args.viewport(), |context, graphics| {
-                                let transform = context.transform;
-                                game_world.render(context, transform, graphics);
-                            })
-                    }
+                    //                    if let Some(args) = event.render_args() {
+                    ////                        game_view
+                    ////                            .gl_graphics
+                    ////                            .draw(args.viewport(), |context, graphics| {
+                    ////                                let transform = context.transform;
+                    ////                                game_world.render(context, transform, graphics);
+                    ////                            })
+                    ////                    }
+                    game_view.window.draw_2d(&event, |context, graphics, _| {
+                        game_world.render(context, context.transform, graphics);
+                    });
                 }
                 _ => {}
             },
