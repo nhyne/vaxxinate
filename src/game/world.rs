@@ -1,13 +1,16 @@
 use crate::game::player::character::Character;
-use crate::game::renderable::Renderable;
 use nalgebra::Vector2;
 use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
 use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use opengl_graphics::GlGraphics;
+use opengl_graphics::Texture;
 use piston_window::math::Matrix2d;
-use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
+use piston_window::{
+    clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion, PistonWindow,
+};
+use sprite::Scene;
 use std::collections::HashSet;
 
 pub struct World {
@@ -17,18 +20,26 @@ pub struct World {
     collider_set: DefaultColliderSet<f64>,
     force_set: DefaultForceGeneratorSet<f64>,
     joint_constraint_set: DefaultJointConstraintSet<f64>,
+    scene: Scene<Texture>,
     character: Character,
     keys_pressed: HashSet<Key>,
     mouse_position: [f64; 2],
 }
 
 impl World {
-    pub fn new() -> World {
+    pub fn new(window: &mut PistonWindow) -> World {
+        let mut scene: Scene<Texture> = Scene::new();
         let mut body_set: DefaultBodySet<f64> = DefaultBodySet::new();
         let mut collider_set: DefaultColliderSet<f64> = DefaultColliderSet::new();
         let force_set: DefaultForceGeneratorSet<f64> = DefaultForceGeneratorSet::new();
         let joint_constraint_set: DefaultJointConstraintSet<f64> = DefaultJointConstraintSet::new();
-        let character = Character::new(&mut body_set, &mut collider_set, (100.0, 100.0));
+        let character = Character::new(
+            &mut body_set,
+            &mut collider_set,
+            (100.0, 100.0),
+            window,
+            &mut scene,
+        );
         World {
             mechanical_world: DefaultMechanicalWorld::new(Vector2::new(0.0, 0.0)),
             geometric_world: DefaultGeometricalWorld::new(),
@@ -39,6 +50,7 @@ impl World {
             character,
             keys_pressed: HashSet::new(),
             mouse_position: [0.0, 0.0],
+            scene,
         }
     }
 
@@ -56,12 +68,13 @@ impl World {
             .update_rotation(self.mouse_position, &mut self.body_set);
     }
 
-    pub fn render(&self, context: Context, transform: Matrix2d, graphics: &mut GlGraphics) {
+    pub fn render(&self, _context: Context, transform: Matrix2d, graphics: &mut GlGraphics) {
         clear([0.8, 0.8, 0.8, 1.0], graphics);
         graphics.clear_stencil(0);
 
-        self.character
-            .render(context, transform, graphics, &self.body_set)
+        self.scene.draw(transform, graphics);
+        //        self.character
+        //            .render(context, transform, graphics, &self.body_set)
     }
 
     pub fn handle_mouse(&mut self, motion: Motion) {
@@ -86,11 +99,5 @@ impl World {
                 }
             }
         }
-    }
-}
-
-impl Default for World {
-    fn default() -> Self {
-        Self::new()
     }
 }

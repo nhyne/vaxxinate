@@ -11,10 +11,13 @@ use nphysics2d::object::{
 };
 use opengl_graphics::{GlGraphics, Texture, TextureSettings};
 use piston_window::math::Matrix2d;
-use piston_window::{Key, Rectangle, Transformed};
+use piston_window::{Key, PistonWindow, Rectangle, TextureContext, Transformed};
+use sprite::{Scene, Sprite};
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::path::Path;
+use std::rc::Rc;
+use uuid::Uuid;
 
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const CHARACTER_BODY_WIDTH: f64 = 20.0;
@@ -31,6 +34,7 @@ pub struct Character {
     //    collider_handle: DefaultColliderHandle,
     shape: Rectangle,
     player_image: Texture,
+    _sprite_uuid: Uuid,
 }
 
 impl Character {
@@ -38,6 +42,8 @@ impl Character {
         body_set: &mut DefaultBodySet<f64>,
         collider_set: &mut DefaultColliderSet<f64>,
         position: (f64, f64),
+        window: &mut PistonWindow,
+        scene: &mut Scene<Texture>,
     ) -> Character {
         let character_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
             CHARACTER_BODY_WIDTH,
@@ -58,6 +64,8 @@ impl Character {
         let character_collider = character_collider.build(BodyPartHandle(body_handle, 0));
         let _collider_handle = collider_set.insert(character_collider);
 
+        let sprite_uuid = Character::generate_sprite(window, scene);
+
         let player_image =
             Texture::from_path(&Path::new("./assets/player.png"), &TextureSettings::new()).unwrap();
 
@@ -66,7 +74,24 @@ impl Character {
             //            collider_handle,
             shape: Rectangle::new(BLACK),
             player_image,
+            _sprite_uuid: sprite_uuid,
         }
+    }
+
+    fn generate_sprite(window: &mut PistonWindow, scene: &mut Scene<Texture>) -> Uuid {
+        let assets = find_folder::Search::ParentsThenKids(3, 3)
+            .for_folder("assets")
+            .unwrap();
+        let _texture_context = TextureContext {
+            factory: window.factory.clone(),
+            encoder: window.factory.create_command_buffer().into(),
+        };
+        let tex = Rc::new(
+            Texture::from_path(assets.join("player.png"), &TextureSettings::new()).unwrap(),
+        );
+        let mut sprite = Sprite::from_texture(tex);
+        sprite.set_position(10.0, 10.0);
+        scene.add_child(sprite)
     }
 
     pub fn update(&mut self, world: &mut DefaultBodySet<f64>, keys_pressed: &HashSet<Key>) {

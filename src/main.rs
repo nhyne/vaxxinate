@@ -12,7 +12,7 @@ fn main() {
     // Currently this needs to be instantiated before the world
     //      because the open_gl initiation occurs in it
     let mut game_view = View::default();
-    let mut game_world = World::default();
+    let mut game_world = World::new(&mut game_view.window);
     let mut events = Events::new(EventSettings::new());
 
     while let Some(event) = events.next(&mut game_view.window) {
