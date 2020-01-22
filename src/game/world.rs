@@ -7,9 +7,7 @@ use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use opengl_graphics::GlGraphics;
 use opengl_graphics::Texture;
 use piston_window::math::Matrix2d;
-use piston_window::{
-    clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion, PistonWindow,
-};
+use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
 use sprite::Scene;
 use std::collections::HashSet;
 
@@ -27,19 +25,14 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(window: &mut PistonWindow) -> World {
+    pub fn new() -> World {
         let mut scene: Scene<Texture> = Scene::new();
         let mut body_set: DefaultBodySet<f64> = DefaultBodySet::new();
         let mut collider_set: DefaultColliderSet<f64> = DefaultColliderSet::new();
         let force_set: DefaultForceGeneratorSet<f64> = DefaultForceGeneratorSet::new();
         let joint_constraint_set: DefaultJointConstraintSet<f64> = DefaultJointConstraintSet::new();
-        let character = Character::new(
-            &mut body_set,
-            &mut collider_set,
-            (100.0, 100.0),
-            window,
-            &mut scene,
-        );
+        let character =
+            Character::new(&mut body_set, &mut collider_set, (100.0, 100.0), &mut scene);
         World {
             mechanical_world: DefaultMechanicalWorld::new(Vector2::new(0.0, 0.0)),
             geometric_world: DefaultGeometricalWorld::new(),
@@ -97,5 +90,11 @@ impl World {
                 }
             }
         }
+    }
+}
+
+impl Default for World {
+    fn default() -> Self {
+        Self::new()
     }
 }

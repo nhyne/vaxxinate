@@ -1,6 +1,3 @@
-use crate::game::renderable::Renderable;
-
-use graphics::{image, Context};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::{Force2, ForceType};
@@ -9,21 +6,15 @@ use nphysics2d::object::{
     Body, BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet,
     RigidBodyDesc,
 };
-use opengl_graphics::{GlGraphics, Texture, TextureSettings};
-use piston_window::math::Matrix2d;
-use piston_window::{Key, PistonWindow, Rectangle, TextureContext, Transformed};
+use opengl_graphics::{Texture, TextureSettings};
+use piston_window::Key;
 use sprite::{Scene, Sprite};
-use std::borrow::Borrow;
 use std::collections::HashSet;
-use std::path::Path;
 use std::rc::Rc;
 use uuid::Uuid;
 
-const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const CHARACTER_BODY_WIDTH: f64 = 20.0;
 const CHARACTER_BODY_HEIGHT: f64 = 20.0;
-const CHARACTER_RENDER_WIDTH: f64 = CHARACTER_BODY_WIDTH * 2.0;
-const CHARACTER_RENDER_HEIGHT: f64 = CHARACTER_BODY_HEIGHT * 2.0;
 
 pub struct Character {
     // It is possible to get the body handle from the collider handle following the example below
@@ -32,8 +23,7 @@ pub struct Character {
     //      let body_handle = collider.body();
     body_handle: DefaultBodyHandle,
     //    collider_handle: DefaultColliderHandle,
-    shape: Rectangle,
-    player_image: Texture,
+    //    player_image: Texture,
     sprite_uuid: Uuid,
 }
 
@@ -42,7 +32,6 @@ impl Character {
         body_set: &mut DefaultBodySet<f64>,
         collider_set: &mut DefaultColliderSet<f64>,
         position: (f64, f64),
-        window: &mut PistonWindow,
         scene: &mut Scene<Texture>,
     ) -> Character {
         let character_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
@@ -64,33 +53,24 @@ impl Character {
         let character_collider = character_collider.build(BodyPartHandle(body_handle, 0));
         let _collider_handle = collider_set.insert(character_collider);
 
-        let sprite_uuid = Character::generate_sprite(window, scene);
-
-        let player_image =
-            Texture::from_path(&Path::new("./assets/player.png"), &TextureSettings::new()).unwrap();
+        let sprite_uuid = Character::generate_sprite(scene, position);
 
         Character {
             body_handle,
             //            collider_handle,
-            shape: Rectangle::new(BLACK),
-            player_image,
             sprite_uuid,
         }
     }
 
-    fn generate_sprite(window: &mut PistonWindow, scene: &mut Scene<Texture>) -> Uuid {
+    fn generate_sprite(scene: &mut Scene<Texture>, position: (f64, f64)) -> Uuid {
         let assets = find_folder::Search::ParentsThenKids(3, 3)
             .for_folder("assets")
             .unwrap();
-        let _texture_context = TextureContext {
-            factory: window.factory.clone(),
-            encoder: window.factory.create_command_buffer().into(),
-        };
         let tex = Rc::new(
             Texture::from_path(assets.join("player.png"), &TextureSettings::new()).unwrap(),
         );
         let mut sprite = Sprite::from_texture(tex);
-        sprite.set_position(10.0, 10.0);
+        sprite.set_position(position.0, position.1);
         scene.add_child(sprite)
     }
 
@@ -174,40 +154,6 @@ impl Character {
         if let Some(body) = world.rigid_body_mut(self.body_handle) {
             let jump_force = Force2::linear(Vector2::new(0.0, -5.0));
             body.apply_force(0, &jump_force, ForceType::VelocityChange, false);
-        }
-    }
-}
-
-impl Renderable for Character {
-    fn render(
-        &self,
-        context: Context,
-        transform: Matrix2d,
-        graphics: &mut GlGraphics,
-        world: &DefaultBodySet<f64>,
-    ) {
-        if let Some(body) = world.rigid_body(self.body_handle) {
-            //TODO Cleanup this function
-            let character_body = body.borrow();
-            let position = character_body.position().translation.vector;
-            let (x_pos, y_pos) = (position[0], position[1]);
-            let rotation = character_body.position().rotation.angle();
-            let rotation_transform = transform
-                .trans(x_pos, y_pos)
-                .rot_rad(rotation)
-                .trans(-x_pos, -y_pos);
-            self.shape.draw(
-                [
-                    x_pos - CHARACTER_BODY_WIDTH,
-                    y_pos - CHARACTER_BODY_HEIGHT,
-                    CHARACTER_RENDER_WIDTH,
-                    CHARACTER_RENDER_HEIGHT,
-                ],
-                &context.draw_state,
-                rotation_transform,
-                graphics,
-            );
-            image(&self.player_image, rotation_transform, graphics);
         }
     }
 }
