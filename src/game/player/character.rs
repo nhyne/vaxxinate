@@ -66,7 +66,8 @@ impl Character {
         let assets = find_folder::Search::ParentsThenKids(3, 3)
             .for_folder("assets")
             .unwrap();
-        let tex = Rc::new(
+
+        let tex: Rc<Texture> = Rc::new(
             Texture::from_path(assets.join("player.png"), &TextureSettings::new()).unwrap(),
         );
         let mut sprite = Sprite::from_texture(tex);

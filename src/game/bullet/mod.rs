@@ -1,32 +1,19 @@
 use gfx_device_gl::Texture;
+use std::rc::Rc;
 
+// This system can probably be a lot more efficient.
 pub struct Bullet {
     damage: u32,
-    texture: Texture,
     velocity: f32,
-}
-
-enum BulletType {
+    texture: Rc<Texture>,
 }
 
 impl Bullet {
-    pub fn new(bullet_type: BulletType) -> Bullet {
-        let damage: u32;
-        let texture: Texture;
-        let velocity: f32;
-
-        match bullet_type {
-            BulletType::Standard => {
-                damage = 10;
-                velocity = 2.0;
-                texture =
-            }
-        }
-
+    pub fn new(damage: u32, velocity: f32, texture: Rc<Texture>) -> Bullet {
         Bullet {
             damage,
-            texture,
             velocity,
+            texture,
         }
     }
 }
