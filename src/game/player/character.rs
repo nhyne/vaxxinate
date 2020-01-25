@@ -31,7 +31,7 @@ impl Character {
     pub fn new(
         body_set: &mut DefaultBodySet<f64>,
         collider_set: &mut DefaultColliderSet<f64>,
-        position: (f64, f64),
+        initial_position: (f64, f64),
         scene: &mut Scene<Texture>,
     ) -> Character {
         let character_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
@@ -44,7 +44,10 @@ impl Character {
             .material(MaterialHandle::new(BasicMaterial::new(0.0, 0.0)));
 
         let character_body = RigidBodyDesc::new()
-            .position(Isometry2::translation(position.0, position.1))
+            .position(Isometry2::translation(
+                initial_position.0,
+                initial_position.1,
+            ))
             .linear_damping(1.0)
             .build();
 
@@ -53,7 +56,7 @@ impl Character {
         let character_collider = character_collider.build(BodyPartHandle(body_handle, 0));
         let _collider_handle = collider_set.insert(character_collider);
 
-        let sprite_uuid = Character::generate_sprite(scene, position);
+        let sprite_uuid = Character::generate_sprite(scene, initial_position);
 
         Character {
             body_handle,

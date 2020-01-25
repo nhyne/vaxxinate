@@ -18,7 +18,7 @@ fn main() {
     while let Some(event) = events.next(&mut game_view.window) {
         match event {
             Event::Input(input_event, _timestamp) => match input_event {
-                Input::Button(key) => game_world.handle_keyboard_event(key),
+                Input::Button(key) => game_world.handle_button_event(key),
                 Input::Move(motion) => game_world.handle_mouse(motion),
                 _ => {}
             },

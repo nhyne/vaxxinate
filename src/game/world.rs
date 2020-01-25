@@ -1,14 +1,16 @@
+use crate::game::bullet::Bullet;
+use crate::game::insertable::Insertable;
 use crate::game::player::character::Character;
 use nalgebra::Vector2;
 use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
-use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
+use nphysics2d::object::{BodyPartHandle, DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use opengl_graphics::GlGraphics;
 use opengl_graphics::Texture;
 use piston_window::math::Matrix2d;
 use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
-use sprite::Scene;
+use sprite::{Scene, Sprite};
 use std::collections::HashSet;
 
 pub struct World {
@@ -47,6 +49,23 @@ impl World {
         }
     }
 
+    pub fn insert_into_world(&mut self, to_insert: Insertable) {
+        // TODO: Drop the Insertable
+        // Here I want all of the resources the Insertable owns to be passed to the functions
+        // The Insertable should not own anything anymore
+        let initial_position = to_insert.rigid_body.position();
+        let inserted_handle = self.body_set.insert(to_insert.rigid_body);
+
+        let mut sprite = Sprite::from_texture(to_insert.texture);
+        sprite.set_position(100.0, 100.0);
+        self.scene.add_child(sprite);
+
+        if let Some(collider_desc) = to_insert.collider_desc {
+            let collider = collider_desc.build(BodyPartHandle(inserted_handle, 0));
+            let _collider_handle = self.collider_set.insert(collider);
+        }
+    }
+
     pub fn update(&mut self) {
         self.character
             .update(&mut self.body_set, &self.keys_pressed, &mut self.scene);
@@ -77,11 +96,19 @@ impl World {
         }
     }
 
-    pub fn handle_keyboard_event(&mut self, key: ButtonArgs) {
+    pub fn handle_button_event(&mut self, key: ButtonArgs) {
         match key.state {
             ButtonState::Press => {
-                if let Button::Keyboard(key) = key.button {
-                    self.keys_pressed.insert(key);
+                match key.button {
+                    Button::Keyboard(key) => {
+                        self.keys_pressed.insert(key);
+                    }
+                    Button::Mouse(mouse_button) => {
+                        // here we want to spawn a bullet. Not sure what to do on release? -- figure out automatic weapons later?
+                        let bullet = Bullet::new((125.0, 125.0));
+                        self.insert_into_world(bullet);
+                    }
+                    _ => {}
                 }
             }
             ButtonState::Release => {
