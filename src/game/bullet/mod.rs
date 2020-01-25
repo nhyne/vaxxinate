@@ -22,7 +22,8 @@ pub struct InsertedBullet {
 }
 
 impl Bullet {
-    pub fn generate_insertable(initial_position: (f64, f64)) -> Insertable {
+    // takes rotation in DEGREES
+    pub fn generate_insertable(initial_position: (f64, f64), rotation: f64) -> Insertable {
         let bullet_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
             BULLET_BODY_WIDTH,
             BULLET_BODY_HEIGHT,
@@ -37,6 +38,7 @@ impl Bullet {
             ))
             .velocity(Velocity2::new(Vector2::new(50.0, 50.0), 0.0))
             .user_data(Bullet { damage: 10 })
+            .rotation(rotation) // 57.29578) //converted to radians
             .build();
 
         let assets = find_folder::Search::ParentsThenKids(3, 3)
@@ -65,6 +67,8 @@ impl InsertedBullet {
                 let rigid_body_pos = rigid_body.position().translation.vector;
                 let (x_pos, y_pos) = (rigid_body_pos[0], rigid_body_pos[1]);
                 bullet_sprite.set_position(x_pos, y_pos);
+
+                bullet_sprite.set_rotation(rigid_body.position().rotation.angle() * 57.29578);
             }
         }
     }

@@ -133,6 +133,27 @@ impl Character {
         }
     }
 
+    pub fn get_rotation(&self, world: &DefaultBodySet<f64>) -> f64 {
+        if let Some(character_body) = world.rigid_body(self.body_handle) {
+            character_body.position().rotation.angle()
+        } else {
+            // passing a default (we should never his this case)
+            println!("Hit unexpected case for get player rotation. Could not find player body");
+            0.0
+        }
+    }
+
+    pub fn get_position(&self, world: &DefaultBodySet<f64>) -> (f64, f64) {
+        if let Some(character_body) = world.rigid_body(self.body_handle) {
+            let position = character_body.position().translation.vector;
+            (position[0], position[1])
+        } else {
+            // passing a default (we should never his this case)
+            println!("Hit unexpected case for get player position. Could not find player body");
+            (0.0, 0.0)
+        }
+    }
+
     fn move_left(&self, world: &mut DefaultBodySet<f64>) {
         if let Some(body) = world.rigid_body_mut(self.body_handle) {
             let force = Force2::linear(Vector2::new(-5.0, 0.0));

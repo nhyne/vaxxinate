@@ -107,21 +107,20 @@ impl World {
 
     pub fn handle_button_event(&mut self, key: ButtonArgs) {
         match key.state {
-            ButtonState::Press => {
-                match key.button {
-                    Button::Keyboard(key) => {
-                        self.keys_pressed.insert(key);
-                    }
-                    Button::Mouse(mouse_button) => {
-                        if let MouseButton::Left = mouse_button {
-                            // here we want to spawn a bullet. Not sure what to do on release? -- figure out automatic weapons later?
-                            let bullet = Bullet::generate_insertable((125.0, 125.0));
-                            self.insert_into_world(bullet);
-                        }
-                    }
-                    _ => {}
+            ButtonState::Press => match key.button {
+                Button::Keyboard(key) => {
+                    self.keys_pressed.insert(key);
                 }
-            }
+                Button::Mouse(mouse_button) => {
+                    if let MouseButton::Left = mouse_button {
+                        let player_position = self.character.get_position(&self.body_set);
+                        let player_rotation = self.character.get_rotation(&self.body_set);
+                        let bullet = Bullet::generate_insertable(player_position, player_rotation);
+                        self.insert_into_world(bullet);
+                    }
+                }
+                _ => {}
+            },
             ButtonState::Release => {
                 if let Button::Keyboard(key) = key.button {
                     self.keys_pressed.remove(&key);
