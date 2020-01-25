@@ -2,8 +2,9 @@ use crate::game::insertable::Insertable;
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::Velocity2;
-use nphysics2d::object::{ColliderDesc, RigidBodyDesc};
+use nphysics2d::object::{ColliderDesc, DefaultBodyHandle, DefaultBodySet, RigidBodyDesc};
 use opengl_graphics::{Texture, TextureSettings};
+use sprite::Scene;
 use std::rc::Rc;
 use uuid::Uuid;
 
@@ -15,8 +16,13 @@ pub struct Bullet {
     damage: u32,
 }
 
+pub struct InsertedBullet {
+    sprite_uuid: Uuid,
+    body_handle: DefaultBodyHandle,
+}
+
 impl Bullet {
-    pub fn new(initial_position: (f64, f64)) -> Insertable {
+    pub fn generate_insertable(initial_position: (f64, f64)) -> Insertable {
         let bullet_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
             BULLET_BODY_WIDTH,
             BULLET_BODY_HEIGHT,
@@ -29,7 +35,7 @@ impl Bullet {
                 initial_position.0,
                 initial_position.1,
             ))
-            .velocity(Velocity2::new(Vector2::new(1.0, 1.0), 0.0))
+            .velocity(Velocity2::new(Vector2::new(50.0, 50.0), 0.0))
             .user_data(Bullet { damage: 10 })
             .build();
 
@@ -43,8 +49,23 @@ impl Bullet {
 
         Insertable::new(tex, bullet_body, Some(bullet_collider))
     }
+}
 
-    pub fn damage(&self) -> u32 {
-        self.damage
+impl InsertedBullet {
+    pub fn new(sprite_uuid: Uuid, body_handle: DefaultBodyHandle) -> Self {
+        InsertedBullet {
+            sprite_uuid,
+            body_handle,
+        }
+    }
+
+    pub fn update(&self, world: &DefaultBodySet<f64>, scene: &mut Scene<Texture>) {
+        if let Some(bullet_sprite) = scene.child_mut(self.sprite_uuid) {
+            if let Some(rigid_body) = world.rigid_body(self.body_handle) {
+                let rigid_body_pos = rigid_body.position().translation.vector;
+                let (x_pos, y_pos) = (rigid_body_pos[0], rigid_body_pos[1]);
+                bullet_sprite.set_position(x_pos, y_pos);
+            }
+        }
     }
 }

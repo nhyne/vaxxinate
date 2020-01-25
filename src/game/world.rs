@@ -1,6 +1,7 @@
-use crate::game::bullet::Bullet;
+use crate::game::bullet::{Bullet, InsertedBullet};
 use crate::game::insertable::Insertable;
 use crate::game::player::character::Character;
+use input::MouseButton;
 use nalgebra::Vector2;
 use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
@@ -22,6 +23,7 @@ pub struct World {
     joint_constraint_set: DefaultJointConstraintSet<f64>,
     scene: Scene<Texture>,
     character: Character,
+    bullets: Vec<InsertedBullet>,
     keys_pressed: HashSet<Key>,
     mouse_position: [f64; 2],
 }
@@ -46,6 +48,7 @@ impl World {
             keys_pressed: HashSet::new(),
             mouse_position: [0.0, 0.0],
             scene,
+            bullets: vec![],
         }
     }
 
@@ -53,17 +56,20 @@ impl World {
         // TODO: Drop the Insertable
         // Here I want all of the resources the Insertable owns to be passed to the functions
         // The Insertable should not own anything anymore
-        let initial_position = to_insert.rigid_body.position();
+        let _initial_position = to_insert.rigid_body.position();
         let inserted_handle = self.body_set.insert(to_insert.rigid_body);
 
         let mut sprite = Sprite::from_texture(to_insert.texture);
         sprite.set_position(100.0, 100.0);
-        self.scene.add_child(sprite);
+        let sprite_uuid = self.scene.add_child(sprite);
 
         if let Some(collider_desc) = to_insert.collider_desc {
             let collider = collider_desc.build(BodyPartHandle(inserted_handle, 0));
             let _collider_handle = self.collider_set.insert(collider);
         }
+
+        self.bullets
+            .insert(0, InsertedBullet::new(sprite_uuid, inserted_handle));
     }
 
     pub fn update(&mut self) {
@@ -78,6 +84,9 @@ impl World {
         );
         self.character
             .update_rotation(self.mouse_position, &mut self.body_set);
+        for bullet in &self.bullets {
+            bullet.update(&self.body_set, &mut self.scene);
+        }
     }
 
     pub fn render(&self, _context: Context, transform: Matrix2d, graphics: &mut GlGraphics) {
@@ -104,9 +113,11 @@ impl World {
                         self.keys_pressed.insert(key);
                     }
                     Button::Mouse(mouse_button) => {
-                        // here we want to spawn a bullet. Not sure what to do on release? -- figure out automatic weapons later?
-                        let bullet = Bullet::new((125.0, 125.0));
-                        self.insert_into_world(bullet);
+                        if let MouseButton::Left = mouse_button {
+                            // here we want to spawn a bullet. Not sure what to do on release? -- figure out automatic weapons later?
+                            let bullet = Bullet::generate_insertable((125.0, 125.0));
+                            self.insert_into_world(bullet);
+                        }
                     }
                     _ => {}
                 }
