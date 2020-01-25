@@ -38,7 +38,7 @@ impl Bullet {
             ))
             .velocity(Velocity2::new(Vector2::new(50.0, 50.0), 0.0))
             .user_data(Bullet { damage: 10 })
-            .rotation(rotation) // 57.29578) //converted to radians
+            .rotation(rotation)
             .build();
 
         let assets = find_folder::Search::ParentsThenKids(3, 3)
