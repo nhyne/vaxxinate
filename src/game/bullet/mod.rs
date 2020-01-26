@@ -11,6 +11,7 @@ use uuid::Uuid;
 const BULLET_BODY_WIDTH: f64 = 5.0;
 const BULLET_BODY_HEIGHT: f64 = 5.0;
 const BULLET_SPAWN_OFFSET: f64 = 35.0;
+const BULLET_SPEED: f64 = 250.0;
 
 #[derive(Clone)]
 pub struct Bullet {
@@ -34,8 +35,8 @@ impl Bullet {
 
         let directional_unit_vector = Bullet::bullet_directional_unit_vector(rotation_rad);
         let velocity_vector: Vector2<f64> = Vector2::new(
-            directional_unit_vector[0] * 50.0,
-            directional_unit_vector[1] * 50.0,
+            directional_unit_vector[0] * BULLET_SPEED,
+            directional_unit_vector[1] * BULLET_SPEED,
         );
 
         let bullet_body = RigidBodyDesc::new()
