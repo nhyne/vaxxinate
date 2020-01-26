@@ -143,14 +143,13 @@ impl Character {
         }
     }
 
-    pub fn get_position(&self, world: &DefaultBodySet<f64>) -> (f64, f64) {
+    pub fn get_position(&self, world: &DefaultBodySet<f64>) -> Vector2<f64> {
         if let Some(character_body) = world.rigid_body(self.body_handle) {
-            let position = character_body.position().translation.vector;
-            (position[0], position[1])
+            character_body.position().translation.vector
         } else {
             // passing a default (we should never his this case)
             println!("Hit unexpected case for get player position. Could not find player body");
-            (0.0, 0.0)
+            Vector2::new(0.0, 0.0)
         }
     }
 
