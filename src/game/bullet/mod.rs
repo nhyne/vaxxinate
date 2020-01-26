@@ -7,10 +7,10 @@ use opengl_graphics::{Texture, TextureSettings};
 use sprite::Scene;
 use std::rc::Rc;
 use uuid::Uuid;
-use std::intrinsics::cosf64;
 
 const BULLET_BODY_WIDTH: f64 = 5.0;
 const BULLET_BODY_HEIGHT: f64 = 5.0;
+const BULLET_SPAWN_OFFSET: f64 = 35.0;
 
 #[derive(Clone)]
 pub struct Bullet {
@@ -23,8 +23,8 @@ pub struct InsertedBullet {
 }
 
 impl Bullet {
-    // takes rotation in DEGREES
-    pub fn generate_insertable(initial_position: Vector2<f64>, rotation: f64) -> Insertable {
+    // takes rotation in RADIANS
+    pub fn generate_insertable(initial_position: Vector2<f64>, rotation_rad: f64) -> Insertable {
         let bullet_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
             BULLET_BODY_WIDTH,
             BULLET_BODY_HEIGHT,
@@ -32,17 +32,20 @@ impl Bullet {
 
         let bullet_collider = ColliderDesc::new(bullet_shape).density(0.1);
 
-        let directional_unit_vector = Bullet::calculate_spawn_position(initial_position, rotation);
-        let velocity_vector = Vector2::new(directional_unit_vector[0] * 50.0, directional_unit_vector[1] * 50.0);
+        let directional_unit_vector = Bullet::bullet_directional_unit_vector(rotation_rad);
+        let velocity_vector: Vector2<f64> = Vector2::new(
+            directional_unit_vector[0] * 50.0,
+            directional_unit_vector[1] * 50.0,
+        );
 
         let bullet_body = RigidBodyDesc::new()
             .position(Isometry2::translation(
-                initial_position[0],
-                initial_position[1],
+                initial_position[0] + BULLET_SPAWN_OFFSET * directional_unit_vector[0],
+                initial_position[1] + BULLET_SPAWN_OFFSET * directional_unit_vector[1],
             ))
-            .velocity(Velocity2::new(Vector2::new(50.0, 50.0), 0.0))
+            .velocity(Velocity2::new(velocity_vector, 0.0))
             .user_data(Bullet { damage: 10 })
-            .rotation(rotation)
+            .rotation(rotation_rad)
             .build();
 
         let assets = find_folder::Search::ParentsThenKids(3, 3)
@@ -56,16 +59,14 @@ impl Bullet {
         Insertable::new(tex, bullet_body, Some(bullet_collider))
     }
 
-    fn calculate_spawn_position(player_position: Vector2<f64>, rotation_deg: f64) -> Vector2<f64> {
+    fn bullet_directional_unit_vector(rotation_rad: f64) -> Vector2<f64> {
         use std::f64;
-        const BULLET_OFFSET_DISTANCE : f64 = 30.0;
-        let rotation_radians = rotation_deg / 57.29578;
-        let x_addition = rotation_radians.cos();
-        let y_addition = rotation_radians.sin();
 
-        let rotational_vector = Vector2::new(x_addition, y_addition);
-        rotational_vector
+        let corrected_rotation = rotation_rad - f64::consts::FRAC_PI_2;
+        let x_addition = corrected_rotation.cos();
+        let y_addition = corrected_rotation.sin();
 
+        Vector2::new(x_addition, y_addition)
     }
 }
 
