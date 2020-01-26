@@ -46,6 +46,7 @@ impl Bullet {
             ))
             .velocity(Velocity2::new(velocity_vector, 0.0))
             .user_data(Bullet { damage: 10 })
+            .max_angular_velocity(0.0)
             .rotation(rotation_rad)
             .build();
 
