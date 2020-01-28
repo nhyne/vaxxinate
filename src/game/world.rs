@@ -40,16 +40,19 @@ impl World {
         let character =
             Character::new(&mut body_set, &mut collider_set, (100.0, 100.0), &mut scene);
 
+        // Temporary code
         let baby_insertable = Baby::generate_insertable(Vector2::new(10.0, 10.0));
         let baby_handle = body_set.insert(baby_insertable.rigid_body);
         let mut baby_sprite = Sprite::from_texture(baby_insertable.texture);
         baby_sprite.set_position(250.0, 250.0);
-        scene.add_child(baby_sprite);
+        let baby_id = scene.add_child(baby_sprite);
 
         if let Some(collider_desc) = baby_insertable.collider_desc {
             let collider = collider_desc.build(BodyPartHandle(baby_handle, 0));
             let _collider_handle = collider_set.insert(collider);
         }
+
+        let test_baby = Baby::new(baby_id, baby_handle);
 
         World {
             mechanical_world: DefaultMechanicalWorld::new(Vector2::new(0.0, 0.0)),
@@ -63,7 +66,7 @@ impl World {
             mouse_position: [0.0, 0.0],
             scene,
             bullets: vec![],
-            babies: vec![],
+            babies: vec![test_baby],
         }
     }
 
@@ -100,6 +103,10 @@ impl World {
             .update_rotation(self.mouse_position, &mut self.body_set);
         for bullet in &self.bullets {
             bullet.update(&self.body_set, &mut self.scene);
+        }
+
+        for baby in &self.babies {
+            baby.update(&self.body_set, &mut self.scene);
         }
     }
 

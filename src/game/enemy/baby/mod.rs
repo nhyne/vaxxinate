@@ -2,13 +2,14 @@ use crate::game::enemy::Enemy;
 use crate::game::insertable::Insertable;
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
-use nphysics2d::object::{ColliderDesc, DefaultBodyHandle, RigidBodyDesc};
+use nphysics2d::object::{ColliderDesc, DefaultBodyHandle, DefaultBodySet, RigidBodyDesc};
 use opengl_graphics::{Texture, TextureSettings};
+use sprite::Scene;
 use std::rc::Rc;
 use uuid::Uuid;
 
-const BABY_BODY_WIDTH: f64 = 150.0;
-const BABY_BODY_HEIGHT: f64 = 75.0;
+const BABY_BODY_WIDTH: f64 = 50.0;
+const BABY_BODY_HEIGHT: f64 = 25.0;
 
 pub struct Baby {
     body_handle: DefaultBodyHandle,
@@ -40,7 +41,25 @@ impl Baby {
         Insertable::new(tex, baby_body, Some(baby_collider))
     }
 
-    pub fn update() {}
+    pub fn new(sprite_uuid: Uuid, body_handle: DefaultBodyHandle) -> Self {
+        Baby {
+            sprite_uuid,
+            body_handle,
+            health: 32,
+        }
+    }
+
+    pub fn update(&self, world: &DefaultBodySet<f64>, scene: &mut Scene<Texture>) {
+        if let Some(bullet_sprite) = scene.child_mut(self.sprite_uuid) {
+            if let Some(rigid_body) = world.rigid_body(self.body_handle) {
+                let rigid_body_pos = rigid_body.position().translation.vector;
+                let (x_pos, y_pos) = (rigid_body_pos[0], rigid_body_pos[1]);
+                bullet_sprite.set_position(x_pos, y_pos);
+
+                //                bullet_sprite.set_rotation(rigid_body.position().rotation.angle() * 57.29578);
+            }
+        }
+    }
 }
 
 impl Enemy for Baby {
