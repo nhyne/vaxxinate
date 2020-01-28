@@ -4,3 +4,4 @@ pub mod world;
 mod bullet;
 mod insertable;
 mod player;
+mod enemy;
