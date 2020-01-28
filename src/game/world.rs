@@ -1,4 +1,5 @@
 use crate::game::bullet::{Bullet, InsertedBullet};
+use crate::game::enemy::baby::Baby;
 use crate::game::insertable::Insertable;
 use crate::game::player::character::Character;
 use input::MouseButton;
@@ -23,6 +24,7 @@ pub struct World {
     joint_constraint_set: DefaultJointConstraintSet<f64>,
     scene: Scene<Texture>,
     character: Character,
+    babies: Vec<Baby>,
     bullets: Vec<InsertedBullet>,
     keys_pressed: HashSet<Key>,
     mouse_position: [f64; 2],
@@ -37,6 +39,18 @@ impl World {
         let joint_constraint_set: DefaultJointConstraintSet<f64> = DefaultJointConstraintSet::new();
         let character =
             Character::new(&mut body_set, &mut collider_set, (100.0, 100.0), &mut scene);
+
+        let baby_insertable = Baby::generate_insertable(Vector2::new(10.0, 10.0));
+        let baby_handle = body_set.insert(baby_insertable.rigid_body);
+        let mut baby_sprite = Sprite::from_texture(baby_insertable.texture);
+        baby_sprite.set_position(250.0, 250.0);
+        scene.add_child(baby_sprite);
+
+        if let Some(collider_desc) = baby_insertable.collider_desc {
+            let collider = collider_desc.build(BodyPartHandle(baby_handle, 0));
+            let _collider_handle = collider_set.insert(collider);
+        }
+
         World {
             mechanical_world: DefaultMechanicalWorld::new(Vector2::new(0.0, 0.0)),
             geometric_world: DefaultGeometricalWorld::new(),
@@ -49,6 +63,7 @@ impl World {
             mouse_position: [0.0, 0.0],
             scene,
             bullets: vec![],
+            babies: vec![],
         }
     }
 
@@ -59,8 +74,7 @@ impl World {
         let _initial_position = to_insert.rigid_body.position();
         let inserted_handle = self.body_set.insert(to_insert.rigid_body);
 
-        let mut sprite = Sprite::from_texture(to_insert.texture);
-        sprite.set_position(100.0, 100.0);
+        let sprite = Sprite::from_texture(to_insert.texture);
         let sprite_uuid = self.scene.add_child(sprite);
 
         if let Some(collider_desc) = to_insert.collider_desc {
