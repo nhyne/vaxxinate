@@ -6,7 +6,7 @@ use input::MouseButton;
 use nalgebra::Vector2;
 use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
-use nphysics2d::object::{BodyPartHandle, DefaultBodySet, DefaultColliderSet};
+use nphysics2d::object::{BodyPartHandle, DefaultBodySet, DefaultColliderSet, DefaultBodyHandle};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use opengl_graphics::GlGraphics;
 use opengl_graphics::Texture;
@@ -14,6 +14,7 @@ use piston_window::math::Matrix2d;
 use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
 use sprite::{Scene, Sprite};
 use std::collections::HashSet;
+use ncollide2d::narrow_phase::ContactEvent;
 
 pub struct World {
     mechanical_world: DefaultMechanicalWorld<f64>,
@@ -107,6 +108,22 @@ impl World {
 
         for baby in &self.babies {
             baby.update(&self.body_set, &mut self.scene);
+        }
+
+        for contact_event in self.geometric_world.contact_events().iter() {
+            self.handle_contact_event(contact_event);
+        }
+    }
+
+    fn handle_contact_event(&self, contact_event: &ContactEvent<DefaultBodyHandle>) {
+        match contact_event {
+            ContactEvent::Started(first_handle, second_handle) => {
+                let body = self.body_set.rigid_body(*first_handle).unwrap();
+                println!("FIRST HANDLE: {:#?}, BODY: {:#?}", first_handle, body);
+            }
+            ContactEvent::Stopped(first_handle, second_handle) => {
+
+            }
         }
     }
 
