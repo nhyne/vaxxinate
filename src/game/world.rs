@@ -1,12 +1,15 @@
 use crate::game::bullet::{Bullet, InsertedBullet};
 use crate::game::enemy::baby::Baby;
-use crate::game::insertable::Insertable;
+use crate::game::insertable::{Insertable, Inserted};
 use crate::game::player::character::Character;
 use input::MouseButton;
 use nalgebra::Vector2;
+use ncollide2d::narrow_phase::ContactEvent;
 use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
-use nphysics2d::object::{BodyPartHandle, DefaultBodySet, DefaultColliderSet, DefaultBodyHandle};
+use nphysics2d::object::{
+    BodyPartHandle, DefaultBodyHandle, DefaultBodySet, DefaultColliderHandle, DefaultColliderSet,
+};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use opengl_graphics::GlGraphics;
 use opengl_graphics::Texture;
@@ -14,7 +17,6 @@ use piston_window::math::Matrix2d;
 use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
 use sprite::{Scene, Sprite};
 use std::collections::HashSet;
-use ncollide2d::narrow_phase::ContactEvent;
 
 pub struct World {
     mechanical_world: DefaultMechanicalWorld<f64>,
@@ -43,12 +45,13 @@ impl World {
 
         // Temporary code
         let baby_insertable = Baby::generate_insertable(Vector2::new(10.0, 10.0));
-        let baby_handle = body_set.insert(baby_insertable.rigid_body);
-        let mut baby_sprite = Sprite::from_texture(baby_insertable.texture);
+        let (sprite_tex, rigid_body, collider_desc_option) = baby_insertable.get_parts();
+        let mut baby_sprite = Sprite::from_texture(sprite_tex);
         baby_sprite.set_position(250.0, 250.0);
         let baby_id = scene.add_child(baby_sprite);
 
-        if let Some(collider_desc) = baby_insertable.collider_desc {
+        let baby_handle = body_set.insert(rigid_body);
+        if let Some(collider_desc) = collider_desc_option {
             let collider = collider_desc.build(BodyPartHandle(baby_handle, 0));
             let _collider_handle = collider_set.insert(collider);
         }
@@ -75,13 +78,13 @@ impl World {
         // TODO: Drop the Insertable
         // Here I want all of the resources the Insertable owns to be passed to the functions
         // The Insertable should not own anything anymore
-        let _initial_position = to_insert.rigid_body.position();
-        let inserted_handle = self.body_set.insert(to_insert.rigid_body);
+        let (sprite_tex, rigid_body, collider_desc_option) = to_insert.get_parts();
 
-        let sprite = Sprite::from_texture(to_insert.texture);
+        let sprite = Sprite::from_texture(sprite_tex);
         let sprite_uuid = self.scene.add_child(sprite);
 
-        if let Some(collider_desc) = to_insert.collider_desc {
+        let inserted_handle = self.body_set.insert(rigid_body);
+        if let Some(collider_desc) = collider_desc_option {
             let collider = collider_desc.build(BodyPartHandle(inserted_handle, 0));
             let _collider_handle = self.collider_set.insert(collider);
         }
@@ -102,17 +105,19 @@ impl World {
         );
         self.character
             .update_rotation(self.mouse_position, &mut self.body_set);
-        for bullet in &self.bullets {
-            bullet.update(&self.body_set, &mut self.scene);
-        }
 
-        for baby in &self.babies {
-            baby.update(&self.body_set, &mut self.scene);
-        }
+        let bullets_iter = &self.bullets.iter();
+        bullets_iter.map(|b| b.update(&self.body_set, &mut self.scene));
 
-        for contact_event in self.geometric_world.contact_events().iter() {
-            self.handle_contact_event(contact_event);
-        }
+        &self
+            .babies
+            .iter()
+            .map(|b| b.update(&self.body_set, &mut self.scene));
+
+        self.geometric_world
+            .contact_events()
+            .iter()
+            .map(|ce| self.handle_contact_event(ce));
     }
 
     fn handle_contact_event(&self, contact_event: &ContactEvent<DefaultBodyHandle>) {
@@ -121,9 +126,7 @@ impl World {
                 let body = self.body_set.rigid_body(*first_handle).unwrap();
                 println!("FIRST HANDLE: {:#?}, BODY: {:#?}", first_handle, body);
             }
-            ContactEvent::Stopped(first_handle, second_handle) => {
-
-            }
+            ContactEvent::Stopped(first_handle, second_handle) => {}
         }
     }
 
@@ -165,6 +168,23 @@ impl World {
                 }
             }
         }
+    }
+
+    pub fn insert_insertable(&mut self, to_insert: Insertable) -> Inserted {
+        let collider_handle: Option<DefaultColliderHandle> = None;
+
+        let (sprite_tex, rigid_body, collider_desc_option) = to_insert.get_parts();
+        let mut sprite = Sprite::from_texture(sprite_tex);
+        sprite.set_position(250.0, 250.0);
+        let id = self.scene.add_child(sprite);
+
+        let handle = self.body_set.insert(rigid_body);
+        if let Some(collider_desc) = collider_desc_option {
+            let collider = collider_desc.build(BodyPartHandle(handle, 0));
+            let collider_handle = Some(self.collider_set.insert(collider));
+        }
+
+        Inserted::new(id, handle, collider_handle)
     }
 }
 
