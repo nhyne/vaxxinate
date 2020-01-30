@@ -6,7 +6,7 @@ use crate::game::player::character::Character;
 use input::MouseButton;
 use nalgebra::Vector2;
 use ncollide2d::narrow_phase::ContactEvent;
-use nphysics2d::object::{BodyPartHandle, DefaultBodyHandle};
+use nphysics2d::object::{BodyPartHandle, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet};
 use opengl_graphics::GlGraphics;
 use opengl_graphics::Texture;
 use piston_window::math::Matrix2d;
@@ -15,7 +15,6 @@ use sprite::{Scene, Sprite};
 use std::collections::HashSet;
 
 pub struct World {
-    // TODO: Refactor the physics stuff into its own type
     physics_world: PhysicsWorld,
     scene: Scene<Texture>,
     character: Character,
@@ -32,20 +31,7 @@ impl World {
         let (body_set, collider_set) = physics_world.body_collider_sets_mut();
         let character = Character::new(body_set, collider_set, (100.0, 100.0), &mut scene);
 
-        // Temporary code
-        let baby_insertable = Baby::generate_insertable(Vector2::new(10.0, 10.0));
-        let (sprite_tex, rigid_body, collider_desc_option) = baby_insertable.get_parts();
-        let mut baby_sprite = Sprite::from_texture(sprite_tex);
-        baby_sprite.set_position(250.0, 250.0);
-        let baby_id = scene.add_child(baby_sprite);
-
-        let baby_handle = body_set.insert(rigid_body);
-        if let Some(collider_desc) = collider_desc_option {
-            let collider = collider_desc.build(BodyPartHandle(baby_handle, 0));
-            let _collider_handle = collider_set.insert(collider);
-        }
-
-        let test_baby = Baby::new(baby_id, baby_handle);
+        let test_baby = World::insert_baby(&mut scene, body_set, collider_set);
 
         World {
             physics_world,
@@ -56,6 +42,27 @@ impl World {
             bullets: vec![],
             babies: vec![test_baby],
         }
+    }
+
+    fn insert_baby(
+        scene: &mut Scene<Texture>,
+        body_set: &mut DefaultBodySet<f64>,
+        collider_set: &mut DefaultColliderSet<f64>,
+    ) -> Baby {
+        // Temporary code
+        let baby_insertable = Baby::generate_insertable(Vector2::new(10.0, 10.0));
+        let (sprite_tex, rigid_body, collider_desc_option) = baby_insertable.get_parts();
+        let mut baby_sprite = Sprite::from_texture(sprite_tex);
+        baby_sprite.set_position(249.0, 250.0);
+        let baby_id = scene.add_child(baby_sprite);
+
+        let baby_handle = body_set.insert(rigid_body);
+        if let Some(collider_desc) = collider_desc_option {
+            let collider = collider_desc.build(BodyPartHandle(baby_handle, 0));
+            let _collider_handle = collider_set.insert(collider);
+        }
+
+        Baby::new(baby_id, baby_handle)
     }
 
     pub fn insert_into_world(&mut self, to_insert: Insertable) {
@@ -90,6 +97,7 @@ impl World {
         self.character
             .update_rotation(self.mouse_position, body_set);
 
+        // TODO: These should be turned into iterators
         for bullet in &self.bullets {
             bullet.update(body_set, &mut self.scene);
         }
@@ -97,13 +105,6 @@ impl World {
         for baby in &self.babies {
             baby.update(body_set, &mut self.scene);
         }
-        //        let bullets_iter = &self.bullets.iter();
-        //        bullets_iter.map(|b| b.update(body_set, &mut self.scene));
-        //
-        //        &self
-        //            .babies
-        //            .iter()
-        //            .map(|b| b.update(body_set, &mut self.scene));
 
         //        self.geometric_world
         //            .contact_events()
