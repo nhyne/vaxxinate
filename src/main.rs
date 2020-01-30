@@ -23,7 +23,10 @@ fn main() {
                 _ => {}
             },
             Event::Loop(loop_event) => match loop_event {
-                Loop::Update(_) => game_world.update(),
+                Loop::Update(_) => {
+                    game_world.update();
+                    game_world.step();
+                }
                 Loop::Render(_) => {
                     if let Some(args) = event.render_args() {
                         game_view
