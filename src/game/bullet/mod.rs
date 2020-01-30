@@ -2,7 +2,7 @@ use crate::game::insertable::{Insertable, Inserted};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::Velocity2;
-use nphysics2d::object::{ColliderDesc, DefaultBodySet, RigidBodyDesc};
+use nphysics2d::object::{ColliderDesc, DefaultBodySet, RigidBody, RigidBodyDesc};
 use opengl_graphics::{Texture, TextureSettings};
 use sprite::Scene;
 use std::rc::Rc;
@@ -24,20 +24,38 @@ pub struct InsertedBullet {
 impl Bullet {
     // takes rotation in RADIANS
     pub fn generate_insertable(initial_position: Vector2<f64>, rotation_rad: f64) -> Insertable {
+        let bullet_collider = Bullet::generate_bullet_collider_desc();
+        let bullet_body = Bullet::generate_bullet_body(initial_position, rotation_rad);
+        let tex = Bullet::generate_bullet_texture();
+
+        Insertable::new(tex, bullet_body, Some(bullet_collider))
+    }
+
+    fn generate_bullet_collider_desc() -> ColliderDesc<f64> {
         let bullet_shape = ShapeHandle::new(Cuboid::new(Vector2::new(
             BULLET_BODY_WIDTH,
             BULLET_BODY_HEIGHT,
         )));
 
-        let bullet_collider = ColliderDesc::new(bullet_shape).density(0.1);
+        ColliderDesc::new(bullet_shape).density(0.1)
+    }
 
+    fn generate_bullet_texture() -> Rc<Texture> {
+        let assets = find_folder::Search::ParentsThenKids(3, 3)
+            .for_folder("assets")
+            .unwrap();
+
+        Rc::new(Texture::from_path(assets.join("vaccine.png"), &TextureSettings::new()).unwrap())
+    }
+
+    fn generate_bullet_body(initial_position: Vector2<f64>, rotation_rad: f64) -> RigidBody<f64> {
         let directional_unit_vector = Bullet::bullet_directional_unit_vector(rotation_rad);
         let velocity_vector: Vector2<f64> = Vector2::new(
             directional_unit_vector[0] * BULLET_SPEED,
             directional_unit_vector[1] * BULLET_SPEED,
         );
 
-        let bullet_body = RigidBodyDesc::new()
+        RigidBodyDesc::new()
             .position(Isometry2::translation(
                 initial_position[0] + BULLET_SPAWN_OFFSET * directional_unit_vector[0],
                 initial_position[1] + BULLET_SPAWN_OFFSET * directional_unit_vector[1],
@@ -46,17 +64,7 @@ impl Bullet {
             .user_data(Bullet { damage: 10 })
             .max_angular_velocity(0.0)
             .rotation(rotation_rad)
-            .build();
-
-        let assets = find_folder::Search::ParentsThenKids(3, 3)
-            .for_folder("assets")
-            .unwrap();
-
-        let tex: Rc<Texture> = Rc::new(
-            Texture::from_path(assets.join("vaccine.png"), &TextureSettings::new()).unwrap(),
-        );
-
-        Insertable::new(tex, bullet_body, Some(bullet_collider))
+            .build()
     }
 
     fn bullet_directional_unit_vector(rotation_rad: f64) -> Vector2<f64> {
