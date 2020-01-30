@@ -1,7 +1,7 @@
 use crate::game::bullet::{Bullet, InsertedBullet};
 use crate::game::enemy::baby::Baby;
 use crate::game::insertable::{Insertable, Inserted};
-use crate::game::physics::PhysicsWorld;
+use crate::game::physics_world::PhysicsWorld;
 use crate::game::player::character::Character;
 use input::MouseButton;
 use nalgebra::Vector2;
@@ -65,26 +65,6 @@ impl World {
         }
 
         Baby::new(baby_id, baby_handle)
-    }
-
-    pub fn insert_into_world(&mut self, to_insert: Insertable) {
-        // TODO: Drop the Insertable
-        // Here I want all of the resources the Insertable owns to be passed to the functions
-        // The Insertable should not own anything anymore
-        let (sprite_tex, rigid_body, collider_desc_option) = to_insert.get_parts();
-
-        let sprite = Sprite::from_texture(sprite_tex);
-        let sprite_uuid = self.scene.add_child(sprite);
-
-        let (body_set, collider_set) = self.physics_world.body_collider_sets_mut();
-        let inserted_handle = body_set.insert(rigid_body);
-        if let Some(collider_desc) = collider_desc_option {
-            let collider = collider_desc.build(BodyPartHandle(inserted_handle, 0));
-            let _collider_handle = collider_set.insert(collider);
-        }
-
-        self.bullets
-            .insert(0, InsertedBullet::new(sprite_uuid, inserted_handle));
     }
 
     pub fn step(&mut self) {
@@ -153,7 +133,8 @@ impl World {
                         let player_position = self.character.get_position(body_set);
                         let player_rotation = self.character.get_rotation(body_set);
                         let bullet = Bullet::generate_insertable(player_position, player_rotation);
-                        self.insert_into_world(bullet);
+                        let inserted_bullet = self.insert_insertable(bullet);
+                        self.bullets.insert(0, InsertedBullet::new(inserted_bullet));
                     }
                 }
                 _ => {}

@@ -4,6 +4,6 @@ pub mod world;
 mod bullet;
 mod enemy;
 mod insertable;
-mod physics;
+mod physics_world;
 mod player;
 mod updatable;

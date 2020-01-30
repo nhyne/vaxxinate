@@ -1,12 +1,11 @@
-use crate::game::insertable::Insertable;
+use crate::game::insertable::{Insertable, Inserted};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::Velocity2;
-use nphysics2d::object::{ColliderDesc, DefaultBodyHandle, DefaultBodySet, RigidBodyDesc};
+use nphysics2d::object::{ColliderDesc, DefaultBodySet, RigidBodyDesc};
 use opengl_graphics::{Texture, TextureSettings};
 use sprite::Scene;
 use std::rc::Rc;
-use uuid::Uuid;
 
 const BULLET_BODY_WIDTH: f64 = 5.0;
 const BULLET_BODY_HEIGHT: f64 = 5.0;
@@ -19,8 +18,7 @@ pub struct Bullet {
 }
 
 pub struct InsertedBullet {
-    sprite_uuid: Uuid,
-    body_handle: DefaultBodyHandle,
+    inserted: Inserted,
 }
 
 impl Bullet {
@@ -73,16 +71,13 @@ impl Bullet {
 }
 
 impl InsertedBullet {
-    pub fn new(sprite_uuid: Uuid, body_handle: DefaultBodyHandle) -> Self {
-        InsertedBullet {
-            sprite_uuid,
-            body_handle,
-        }
+    pub fn new(inserted: Inserted) -> Self {
+        InsertedBullet { inserted }
     }
 
     pub fn update(&self, world: &DefaultBodySet<f64>, scene: &mut Scene<Texture>) {
-        if let Some(bullet_sprite) = scene.child_mut(self.sprite_uuid) {
-            if let Some(rigid_body) = world.rigid_body(self.body_handle) {
+        if let Some(bullet_sprite) = scene.child_mut(self.inserted.get_sprite_uuid()) {
+            if let Some(rigid_body) = world.rigid_body(self.inserted.get_body_handle()) {
                 let rigid_body_pos = rigid_body.position().translation.vector;
                 let (x_pos, y_pos) = (rigid_body_pos[0], rigid_body_pos[1]);
                 bullet_sprite.set_position(x_pos, y_pos);

@@ -45,6 +45,10 @@ impl PhysicsInserted {
             collider_handle,
         }
     }
+
+    fn get_body_handle(&self) -> DefaultBodyHandle {
+        self.body_handle
+    }
 }
 
 pub struct Insertable {
@@ -102,5 +106,13 @@ impl Inserted {
             sprite_uuid,
             physics_inserted,
         }
+    }
+
+    pub fn get_sprite_uuid(&self) -> Uuid {
+        self.sprite_uuid
+    }
+
+    pub fn get_body_handle(&self) -> DefaultBodyHandle {
+        self.physics_inserted.body_handle
     }
 }
