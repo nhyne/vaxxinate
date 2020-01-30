@@ -168,15 +168,17 @@ impl World {
 
     pub fn insert_insertable(&mut self, to_insert: Insertable) -> Inserted {
         let (sprite_tex, physics_insertable) = to_insert.get_parts_insertable();
-        let id = self.insert_sprite(sprite_tex);
+        // TODO: Does this belong in the Insertable struct or as a param here?
+        //       How would a "spawn" call on an enemy type work with this?
+        let id = self.insert_sprite(sprite_tex, Vector2::new(250.0, 250.0));
 
         let physics_inserted = self.physics_world.insert(physics_insertable);
         Inserted::new_from_physics(id, physics_inserted)
     }
 
-    fn insert_sprite(&mut self, sprite_tex: Rc<Texture>) -> Uuid {
+    fn insert_sprite(&mut self, sprite_tex: Rc<Texture>, initial_position: Vector2<f64>) -> Uuid {
         let mut sprite = Sprite::from_texture(sprite_tex);
-        sprite.set_position(250.0, 250.0);
+        sprite.set_position(initial_position[0], initial_position[1]);
         self.scene.add_child(sprite)
     }
 }
