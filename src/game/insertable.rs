@@ -116,3 +116,10 @@ impl Inserted {
         self.physics_inserted.body_handle
     }
 }
+
+#[derive(Clone)]
+pub enum InsertedType {
+    Bullet(Uuid),
+    Baby(Uuid),
+    Character,
+}
