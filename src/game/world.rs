@@ -13,6 +13,8 @@ use piston_window::math::Matrix2d;
 use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
 use sprite::{Scene, Sprite};
 use std::collections::HashSet;
+use std::rc::Rc;
+use uuid::Uuid;
 
 pub struct World {
     physics_world: PhysicsWorld,
@@ -165,23 +167,17 @@ impl World {
     }
 
     pub fn insert_insertable(&mut self, to_insert: Insertable) -> Inserted {
-        let (body_set, collider_set) = self.physics_world.body_collider_sets_mut();
+        let (sprite_tex, physics_insertable) = to_insert.get_parts_insertable();
+        let id = self.insert_sprite(sprite_tex);
 
-        let (sprite_tex, rigid_body, collider_desc_option) = to_insert.get_parts();
+        let physics_inserted = self.physics_world.insert(physics_insertable);
+        Inserted::new_from_physics(id, physics_inserted)
+    }
+
+    fn insert_sprite(&mut self, sprite_tex: Rc<Texture>) -> Uuid {
         let mut sprite = Sprite::from_texture(sprite_tex);
         sprite.set_position(250.0, 250.0);
-        let id = self.scene.add_child(sprite);
-
-        let handle = body_set.insert(rigid_body);
-
-        match collider_desc_option {
-            Some(collider_desc) => {
-                let collider = collider_desc.build(BodyPartHandle(handle, 0));
-                let collider_handle = Some(collider_set.insert(collider));
-                Inserted::new(id, handle, collider_handle)
-            }
-            None => Inserted::new(id, handle, None),
-        }
+        self.scene.add_child(sprite)
     }
 }
 

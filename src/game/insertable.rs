@@ -25,8 +25,25 @@ impl PhysicsInsertable {
         self.rigid_body.position()
     }
 
-    fn parts(self) -> (RigidBody<f64>, Option<ColliderDesc<f64>>) {
+    pub fn parts(self) -> (RigidBody<f64>, Option<ColliderDesc<f64>>) {
         (self.rigid_body, self.collider_desc)
+    }
+}
+
+pub struct PhysicsInserted {
+    body_handle: DefaultBodyHandle,
+    collider_handle: Option<DefaultColliderHandle>,
+}
+
+impl PhysicsInserted {
+    pub fn new(
+        body_handle: DefaultBodyHandle,
+        collider_handle: Option<DefaultColliderHandle>,
+    ) -> PhysicsInserted {
+        PhysicsInserted {
+            body_handle,
+            collider_handle,
+        }
     }
 }
 
@@ -56,12 +73,15 @@ impl Insertable {
         let (rigid_body, collider_desc) = self.physics_insertable.parts();
         (self.texture, rigid_body, collider_desc)
     }
+
+    pub fn get_parts_insertable(self) -> (Rc<Texture>, PhysicsInsertable) {
+        (self.texture, self.physics_insertable)
+    }
 }
 
 pub struct Inserted {
     sprite_uuid: Uuid,
-    body_handle: DefaultBodyHandle,
-    collider_handle: Option<DefaultColliderHandle>,
+    physics_inserted: PhysicsInserted,
 }
 
 impl Inserted {
@@ -70,10 +90,17 @@ impl Inserted {
         body_handle: DefaultBodyHandle,
         collider_handle: Option<DefaultColliderHandle>,
     ) -> Inserted {
+        let physics_inserted = PhysicsInserted::new(body_handle, collider_handle);
         Inserted {
             sprite_uuid,
-            body_handle,
-            collider_handle,
+            physics_inserted,
+        }
+    }
+
+    pub fn new_from_physics(sprite_uuid: Uuid, physics_inserted: PhysicsInserted) -> Inserted {
+        Inserted {
+            sprite_uuid,
+            physics_inserted,
         }
     }
 }

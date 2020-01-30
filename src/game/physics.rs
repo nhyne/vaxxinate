@@ -1,7 +1,8 @@
+use crate::game::insertable::{PhysicsInsertable, PhysicsInserted};
 use nalgebra::Vector2;
 use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
-use nphysics2d::object::{DefaultBodySet, DefaultColliderSet};
+use nphysics2d::object::{BodyPartHandle, DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 
 pub struct PhysicsWorld {
@@ -56,5 +57,16 @@ impl PhysicsWorld {
         )
     }
 
-    //    pub fn insert(&mut self, )
+    pub fn insert(&mut self, insertable: PhysicsInsertable) -> PhysicsInserted {
+        let (body_desc, collider_desc_option) = insertable.parts();
+        let inserted_handle = self.body_set.insert(body_desc);
+        match collider_desc_option {
+            Some(collider_desc) => {
+                let collider = collider_desc.build(BodyPartHandle(inserted_handle, 0));
+                let collider_handle = self.collider_set.insert(collider);
+                PhysicsInserted::new(inserted_handle, Some(collider_handle))
+            }
+            None => PhysicsInserted::new(inserted_handle, None),
+        }
+    }
 }
