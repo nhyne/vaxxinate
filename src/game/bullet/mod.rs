@@ -24,12 +24,19 @@ pub struct InsertedBullet {
 
 impl Bullet {
     // takes rotation in RADIANS
-    pub fn generate_insertable(initial_position: Vector2<f64>, rotation_rad: f64) -> Insertable {
+    pub fn generate_insertable(
+        initial_position: Vector2<f64>,
+        rotation_rad: f64,
+    ) -> (Insertable, Uuid) {
+        let bullet_uuid = Uuid::new_v4();
         let bullet_collider = Bullet::generate_bullet_collider_desc();
-        let bullet_body = Bullet::generate_bullet_body(initial_position, rotation_rad);
+        let bullet_body = Bullet::generate_bullet_body(initial_position, rotation_rad, bullet_uuid);
         let tex = Bullet::generate_bullet_texture();
 
-        Insertable::new(tex, bullet_body, Some(bullet_collider))
+        (
+            Insertable::new(tex, bullet_body, Some(bullet_collider)),
+            bullet_uuid,
+        )
     }
 
     fn generate_bullet_collider_desc() -> ColliderDesc<f64> {
@@ -49,7 +56,11 @@ impl Bullet {
         Rc::new(Texture::from_path(assets.join("vaccine.png"), &TextureSettings::new()).unwrap())
     }
 
-    fn generate_bullet_body(initial_position: Vector2<f64>, rotation_rad: f64) -> RigidBody<f64> {
+    fn generate_bullet_body(
+        initial_position: Vector2<f64>,
+        rotation_rad: f64,
+        bullet_uuid: Uuid,
+    ) -> RigidBody<f64> {
         let directional_unit_vector = Bullet::bullet_directional_unit_vector(rotation_rad);
         let velocity_vector: Vector2<f64> = Vector2::new(
             directional_unit_vector[0] * BULLET_SPEED,
@@ -62,7 +73,7 @@ impl Bullet {
                 initial_position[1] + BULLET_SPAWN_OFFSET * directional_unit_vector[1],
             ))
             .velocity(Velocity2::new(velocity_vector, 0.0))
-            .user_data(InsertedType::Bullet(Uuid::new_v4()))
+            .user_data(InsertedType::Bullet(bullet_uuid))
             .max_angular_velocity(0.0)
             .rotation(rotation_rad)
             .build()

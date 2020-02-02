@@ -1,6 +1,6 @@
 use crate::game::bullet::{Bullet, InsertedBullet};
 use crate::game::enemy::baby::Baby;
-use crate::game::insertable::{Insertable, Inserted};
+use crate::game::insertable::{Insertable, Inserted, InsertedType};
 use crate::game::physics_world::PhysicsWorld;
 use crate::game::player::character::Character;
 use input::MouseButton;
@@ -12,16 +12,18 @@ use opengl_graphics::Texture;
 use piston_window::math::Matrix2d;
 use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
 use sprite::{Scene, Sprite};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use uuid::Uuid;
+use std::time::SystemTime;
+use std::any::TypeId;
 
 pub struct World {
     physics_world: PhysicsWorld,
     scene: Scene<Texture>,
     character: Character,
     babies: Vec<Baby>,
-    bullets: Vec<InsertedBullet>,
+    bullets: HashMap<Uuid, InsertedBullet>,
     keys_pressed: HashSet<Key>,
     mouse_position: [f64; 2],
 }
@@ -41,7 +43,7 @@ impl World {
             keys_pressed: HashSet::new(),
             mouse_position: [0.0, 0.0],
             scene,
-            bullets: vec![],
+            bullets: HashMap::new(),
             babies: vec![test_baby],
         }
     }
@@ -80,7 +82,7 @@ impl World {
             .update_rotation(self.mouse_position, body_set);
 
         // TODO: These should be turned into iterators
-        for bullet in &self.bullets {
+        for bullet in self.bullets.values() {
             bullet.update(body_set, &mut self.scene);
         }
 
@@ -88,17 +90,30 @@ impl World {
             baby.update(body_set, &mut self.scene);
         }
 
-        //        self.geometric_world
-        //            .contact_events()
-        //            .iter()
-        //            .map(|ce| self.handle_contact_event(ce));
+        for contact_event in self.physics_world.geometric_world().contact_events() {
+            self.handle_contact_event(contact_event);
+        }
     }
 
+    // TODO: Too long to calculate these events in every loop
+    // Actually dealing with these contact events takes a long time.
+    //  Long enough that the game is taking too long to spawn a bullet on click and delays it to the next click.
+    //  May have to do this less frequently?
+    //  During a different game event?
     fn handle_contact_event(&self, contact_event: &ContactEvent<DefaultBodyHandle>) {
+        use std::any::Any;
         match contact_event {
-            ContactEvent::Started(_first_handle, _second_handle) => {
-                //                let body = self.body_set.rigid_body(*first_handle).unwrap();
-                //                println!("FIRST HANDLE: {:#?}, BODY: {:#?}", first_handle, body);
+            ContactEvent::Started(first_handle, _second_handle) => {
+                let first_body = self
+                    .physics_world
+                    .body_set()
+                    .rigid_body(*first_handle)
+                    .unwrap();
+                if let Some(data) = first_body.user_data() {
+                    println!("its a bullet? {:#?}", data.type_id() == TypeId::of::<InsertedType::Bullet>);
+                    println!("FIRST HANDLE: {:#?}, BODY USER DATA: {:#?}", first_handle, data);
+
+                }
             }
             ContactEvent::Stopped(_first_handle, _second_handle) => {}
         }
@@ -132,9 +147,11 @@ impl World {
                     if let MouseButton::Left = mouse_button {
                         let player_position = self.character.get_position(body_set);
                         let player_rotation = self.character.get_rotation(body_set);
-                        let bullet = Bullet::generate_insertable(player_position, player_rotation);
+                        let (bullet, bullet_uuid) =
+                            Bullet::generate_insertable(player_position, player_rotation);
                         let inserted_bullet = self.insert_insertable(bullet);
-                        self.bullets.insert(0, InsertedBullet::new(inserted_bullet));
+                        self.bullets
+                            .insert(bullet_uuid, InsertedBullet::new(inserted_bullet));
                     }
                 }
                 _ => {}

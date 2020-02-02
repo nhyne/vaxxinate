@@ -33,6 +33,10 @@ impl PhysicsWorld {
         }
     }
 
+    pub fn geometric_world(&self) -> &DefaultGeometricalWorld<f64> {
+        &self.geometric_world
+    }
+
     pub fn body_set(&self) -> &DefaultBodySet<f64> {
         &self.body_set
     }
