@@ -73,7 +73,7 @@ impl Bullet {
                 initial_position[1] + BULLET_SPAWN_OFFSET * directional_unit_vector[1],
             ))
             .velocity(Velocity2::new(velocity_vector, 0.0))
-            .user_data(InsertedType::Bullet(bullet_uuid))
+            .user_data(Bullet { damage: 100 })
             .max_angular_velocity(0.0)
             .rotation(rotation_rad)
             .build()

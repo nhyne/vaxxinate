@@ -12,11 +12,11 @@ use opengl_graphics::Texture;
 use piston_window::math::Matrix2d;
 use piston_window::{clear, Button, ButtonArgs, ButtonState, Context, Graphics, Key, Motion};
 use sprite::{Scene, Sprite};
+use std::any::TypeId;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use uuid::Uuid;
 use std::time::SystemTime;
-use std::any::TypeId;
+use uuid::Uuid;
 
 pub struct World {
     physics_world: PhysicsWorld,
@@ -110,9 +110,14 @@ impl World {
                     .rigid_body(*first_handle)
                     .unwrap();
                 if let Some(data) = first_body.user_data() {
-                    println!("its a bullet? {:#?}", data.type_id() == TypeId::of::<InsertedType::Bullet>);
-                    println!("FIRST HANDLE: {:#?}, BODY USER DATA: {:#?}", first_handle, data);
-
+                    println!(
+                        "its a bullet? {:#?}",
+                        data.type_id() == TypeId::of::<Bullet>()
+                    );
+                    println!(
+                        "FIRST HANDLE: {:#?}, BODY USER DATA: {:#?}",
+                        first_handle, data
+                    );
                 }
             }
             ContactEvent::Stopped(_first_handle, _second_handle) => {}
