@@ -1,5 +1,5 @@
 use crate::game::bullet::{Bullet, InsertedBullet};
-use crate::game::enemy::baby::{Baby, BabyInt};
+use crate::game::enemy::baby::{BabyIdentifier, InsertedBaby};
 use crate::game::insertable::{Insertable, Inserted};
 use crate::game::physics_world::PhysicsWorld;
 use crate::game::player::character::Character;
@@ -20,7 +20,7 @@ pub struct World {
     physics_world: PhysicsWorld,
     scene: Scene<Texture>,
     character: Character,
-    babies: Vec<Baby>,
+    babies: HashMap<Uuid, InsertedBaby>,
     bullets: HashMap<Uuid, InsertedBullet>,
     keys_pressed: HashSet<Key>,
     mouse_position: [f64; 2],
@@ -33,7 +33,9 @@ impl World {
         let (body_set, collider_set) = physics_world.body_collider_sets_mut();
         let character = Character::new(body_set, collider_set, (100.0, 100.0), &mut scene);
 
-        let test_baby = World::insert_baby(&mut scene, body_set, collider_set);
+        let (test_baby, test_baby_uuid) = World::insert_baby(&mut scene, body_set, collider_set);
+        let mut babies = HashMap::new();
+        babies.insert(test_baby_uuid, test_baby);
 
         World {
             physics_world,
@@ -42,7 +44,7 @@ impl World {
             mouse_position: [0.0, 0.0],
             scene,
             bullets: HashMap::new(),
-            babies: vec![test_baby],
+            babies,
         }
     }
 
@@ -50,21 +52,26 @@ impl World {
         scene: &mut Scene<Texture>,
         body_set: &mut DefaultBodySet<f64>,
         collider_set: &mut DefaultColliderSet<f64>,
-    ) -> Baby {
+    ) -> (InsertedBaby, Uuid) {
         // Temporary code
-        let baby_insertable = Baby::generate_insertable(Vector2::new(10.0, 10.0));
+        let (baby_insertable, uuid) = BabyIdentifier::generate_insertable(Vector2::new(10.0, 10.0));
         let (sprite_tex, rigid_body, collider_desc_option) = baby_insertable.get_parts();
         let mut baby_sprite = Sprite::from_texture(sprite_tex);
         baby_sprite.set_position(249.0, 250.0);
         let baby_id = scene.add_child(baby_sprite);
 
         let baby_handle = body_set.insert(rigid_body);
-        if let Some(collider_desc) = collider_desc_option {
-            let collider = collider_desc.build(BodyPartHandle(baby_handle, 0));
-            let _collider_handle = collider_set.insert(collider);
+        match collider_desc_option {
+            Some(collider_desc) => {
+                let collider = collider_desc.build(BodyPartHandle(baby_handle, 0));
+                let collider_handle = collider_set.insert(collider);
+                (
+                    InsertedBaby::new(baby_id, baby_handle, Some(collider_handle)),
+                    uuid,
+                )
+            }
+            None => (InsertedBaby::new(baby_id, baby_handle, None), uuid),
         }
-
-        Baby::new(baby_id, baby_handle)
     }
 
     pub fn step(&mut self) {
@@ -84,7 +91,7 @@ impl World {
             bullet.update(body_set, &mut self.scene);
         }
 
-        for baby in &self.babies {
+        for baby in self.babies.values() {
             baby.update(body_set, &mut self.scene);
         }
 
@@ -105,6 +112,7 @@ impl World {
     //  During a different game event?
     fn handle_contact_events(&mut self) {
         let mut bullets_to_remove: Vec<Uuid> = vec![];
+        let mut babies_to_remove: Vec<Uuid> = vec![];
         for contact_event in self.physics_world.geometric_world().contact_events() {
             match contact_event {
                 ContactEvent::Started(first_handle, second_handle) => {
@@ -120,18 +128,20 @@ impl World {
                         {
                             let (first_bullet, first_baby) = (
                                 first_data.downcast_ref::<Bullet>(),
-                                first_data.downcast_ref::<BabyInt>(),
+                                first_data.downcast_ref::<BabyIdentifier>(),
                             );
                             let (second_bullet, second_baby) = (
                                 second_data.downcast_ref::<Bullet>(),
-                                second_data.downcast_ref::<BabyInt>(),
+                                second_data.downcast_ref::<BabyIdentifier>(),
                             );
                             match (first_bullet, first_baby, second_bullet, second_baby) {
                                 (Some(bullet), None, None, Some(baby)) => {
                                     bullets_to_remove.insert(0, bullet.uuid);
+                                    babies_to_remove.insert(0, baby.uuid)
                                 }
                                 (None, Some(baby), Some(bullet), None) => {
                                     bullets_to_remove.insert(0, bullet.uuid);
+                                    babies_to_remove.insert(0, baby.uuid);
                                 }
                                 (_, _, _, _) => {}
                             }
@@ -147,6 +157,14 @@ impl World {
                     .body_set_mut()
                     .remove(bullet_removed.get_body_handle());
                 self.scene.remove_child(bullet_removed.get_sprite_id());
+            }
+        }
+        for baby_to_remove in babies_to_remove {
+            if let Some(baby_removed) = self.babies.remove(&baby_to_remove) {
+                self.physics_world
+                    .body_set_mut()
+                    .remove(baby_removed.get_body_handle());
+                self.scene.remove_child(baby_removed.get_sprite_uuid());
             }
         }
     }
