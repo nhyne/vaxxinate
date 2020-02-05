@@ -2,7 +2,9 @@ use crate::game::insertable::{Insertable, Inserted};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::Velocity2;
-use nphysics2d::object::{ColliderDesc, DefaultBodySet, RigidBody, RigidBodyDesc, DefaultBodyHandle};
+use nphysics2d::object::{
+    ColliderDesc, DefaultBodyHandle, DefaultBodySet, RigidBody, RigidBodyDesc,
+};
 use opengl_graphics::{Texture, TextureSettings};
 use sprite::Scene;
 use std::rc::Rc;
@@ -26,6 +28,10 @@ pub struct InsertedBullet {
 impl InsertedBullet {
     pub fn get_body_handle(&self) -> DefaultBodyHandle {
         self.inserted.get_body_handle()
+    }
+
+    pub fn get_sprite_id(&self) -> Uuid {
+        self.inserted.get_sprite_uuid()
     }
 }
 
@@ -80,7 +86,10 @@ impl Bullet {
                 initial_position[1] + BULLET_SPAWN_OFFSET * directional_unit_vector[1],
             ))
             .velocity(Velocity2::new(velocity_vector, 0.0))
-            .user_data(Bullet { damage: 100, uuid: bullet_uuid })
+            .user_data(Bullet {
+                damage: 100,
+                uuid: bullet_uuid,
+            })
             .max_angular_velocity(0.0)
             .rotation(rotation_rad)
             .build()
