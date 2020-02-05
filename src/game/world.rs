@@ -135,11 +135,8 @@ impl World {
                                 second_data.downcast_ref::<BabyIdentifier>(),
                             );
                             match (first_bullet, first_baby, second_bullet, second_baby) {
-                                (Some(bullet), None, None, Some(baby)) => {
-                                    bullets_to_remove.insert(0, bullet.uuid);
-                                    babies_to_remove.insert(0, baby.uuid)
-                                }
-                                (None, Some(baby), Some(bullet), None) => {
+                                (Some(bullet), None, None, Some(baby))
+                                | (None, Some(baby), Some(bullet), None) => {
                                     bullets_to_remove.insert(0, bullet.uuid);
                                     babies_to_remove.insert(0, baby.uuid);
                                 }
