@@ -1,4 +1,4 @@
-use crate::game::insertable::{Insertable, Inserted, InsertedType};
+use crate::game::insertable::{Insertable, Inserted};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::Velocity2;
@@ -59,7 +59,7 @@ impl Bullet {
     fn generate_bullet_body(
         initial_position: Vector2<f64>,
         rotation_rad: f64,
-        bullet_uuid: Uuid,
+        _bullet_uuid: Uuid,
     ) -> RigidBody<f64> {
         let directional_unit_vector = Bullet::bullet_directional_unit_vector(rotation_rad);
         let velocity_vector: Vector2<f64> = Vector2::new(

@@ -1,6 +1,6 @@
 use crate::game::bullet::{Bullet, InsertedBullet};
-use crate::game::enemy::baby::Baby;
-use crate::game::insertable::{Insertable, Inserted, InsertedType};
+use crate::game::enemy::baby::{Baby, BabyInt};
+use crate::game::insertable::{Insertable, Inserted};
 use crate::game::physics_world::PhysicsWorld;
 use crate::game::player::character::Character;
 use input::MouseButton;
@@ -15,7 +15,6 @@ use sprite::{Scene, Sprite};
 use std::any::TypeId;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use std::time::SystemTime;
 use uuid::Uuid;
 
 pub struct World {
@@ -101,23 +100,25 @@ impl World {
     //  May have to do this less frequently?
     //  During a different game event?
     fn handle_contact_event(&self, contact_event: &ContactEvent<DefaultBodyHandle>) {
-        use std::any::Any;
         match contact_event {
-            ContactEvent::Started(first_handle, _second_handle) => {
-                let first_body = self
-                    .physics_world
-                    .body_set()
-                    .rigid_body(*first_handle)
-                    .unwrap();
-                if let Some(data) = first_body.user_data() {
-                    println!(
-                        "its a bullet? {:#?}",
-                        data.type_id() == TypeId::of::<Bullet>()
-                    );
-                    println!(
-                        "FIRST HANDLE: {:#?}, BODY USER DATA: {:#?}",
-                        first_handle, data
-                    );
+            ContactEvent::Started(first_handle, second_handle) => {
+                let first_body_option = self.physics_world.body_set().rigid_body(*first_handle);
+                let second_body_option = self.physics_world.body_set().rigid_body(*second_handle);
+
+                if let (Some(first_body), Some(second_body)) =
+                    (first_body_option, second_body_option)
+                {
+                    if let (Some(first_data), Some(second_data)) =
+                        (first_body.user_data(), second_body.user_data())
+                    {
+                        if first_data.type_id() == TypeId::of::<Bullet>()
+                            && second_data.type_id() == TypeId::of::<BabyInt>()
+                            || first_data.type_id() == TypeId::of::<BabyInt>()
+                                && second_data.type_id() == TypeId::of::<Bullet>()
+                        {
+                            println!("We have a collision that makes us want to do something!!!!!!!!!!!!!!!!!")
+                        }
+                    }
                 }
             }
             ContactEvent::Stopped(_first_handle, _second_handle) => {}
