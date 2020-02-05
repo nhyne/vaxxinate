@@ -13,7 +13,7 @@ const BABY_BODY_HEIGHT: f64 = 25.0;
 
 #[derive(Clone)]
 pub struct BabyInt {
-    something: Uuid,
+    pub uuid: Uuid,
 }
 
 pub struct Baby {
@@ -35,7 +35,7 @@ impl Baby {
             //  certain distance away from the player.
             .position(Isometry2::translation(250.0, 250.0))
             .user_data(BabyInt {
-                something: Uuid::new_v4(),
+                uuid: Uuid::new_v4(),
             })
             .build();
 

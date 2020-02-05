@@ -2,7 +2,7 @@ use crate::game::insertable::{Insertable, Inserted};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::algebra::Velocity2;
-use nphysics2d::object::{ColliderDesc, DefaultBodySet, RigidBody, RigidBodyDesc};
+use nphysics2d::object::{ColliderDesc, DefaultBodySet, RigidBody, RigidBodyDesc, DefaultBodyHandle};
 use opengl_graphics::{Texture, TextureSettings};
 use sprite::Scene;
 use std::rc::Rc;
@@ -16,10 +16,17 @@ const BULLET_SPEED: f64 = 250.0;
 #[derive(Clone)]
 pub struct Bullet {
     damage: u32,
+    pub uuid: Uuid,
 }
 
 pub struct InsertedBullet {
     inserted: Inserted,
+}
+
+impl InsertedBullet {
+    pub fn get_body_handle(&self) -> DefaultBodyHandle {
+        self.inserted.get_body_handle()
+    }
 }
 
 impl Bullet {
@@ -59,7 +66,7 @@ impl Bullet {
     fn generate_bullet_body(
         initial_position: Vector2<f64>,
         rotation_rad: f64,
-        _bullet_uuid: Uuid,
+        bullet_uuid: Uuid,
     ) -> RigidBody<f64> {
         let directional_unit_vector = Bullet::bullet_directional_unit_vector(rotation_rad);
         let velocity_vector: Vector2<f64> = Vector2::new(
@@ -73,7 +80,7 @@ impl Bullet {
                 initial_position[1] + BULLET_SPAWN_OFFSET * directional_unit_vector[1],
             ))
             .velocity(Velocity2::new(velocity_vector, 0.0))
-            .user_data(Bullet { damage: 100 })
+            .user_data(Bullet { damage: 100, uuid: bullet_uuid })
             .max_angular_velocity(0.0)
             .rotation(rotation_rad)
             .build()

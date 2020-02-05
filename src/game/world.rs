@@ -89,9 +89,14 @@ impl World {
             baby.update(body_set, &mut self.scene);
         }
 
-        for contact_event in self.physics_world.geometric_world().contact_events() {
-            self.handle_contact_event(contact_event);
-        }
+
+        let contact_events = self.physics_world.geometric_world().contact_events().iter();
+        contact_events.map(|ce| {
+            self.handle_contact_event(ce);
+        });
+//        for contact_event in contact_events {
+//            self.handle_contact_event(contact_event);
+//        }
     }
 
     // TODO: Too long to calculate these events in every loop
@@ -99,7 +104,8 @@ impl World {
     //  Long enough that the game is taking too long to spawn a bullet on click and delays it to the next click.
     //  May have to do this less frequently?
     //  During a different game event?
-    fn handle_contact_event(&self, contact_event: &ContactEvent<DefaultBodyHandle>) {
+    fn handle_contact_event(&mut self, contact_event: &ContactEvent<DefaultBodyHandle>) -> Vec<Uuid> {
+        let mut uuids_to_remove : Vec<Uuid> = vec![];
         match contact_event {
             ContactEvent::Started(first_handle, second_handle) => {
                 let first_body_option = self.physics_world.body_set().rigid_body(*first_handle);
@@ -111,18 +117,24 @@ impl World {
                     if let (Some(first_data), Some(second_data)) =
                         (first_body.user_data(), second_body.user_data())
                     {
-                        if first_data.type_id() == TypeId::of::<Bullet>()
-                            && second_data.type_id() == TypeId::of::<BabyInt>()
-                            || first_data.type_id() == TypeId::of::<BabyInt>()
-                                && second_data.type_id() == TypeId::of::<Bullet>()
-                        {
-                            println!("We have a collision that makes us want to do something!!!!!!!!!!!!!!!!!")
+                        let (first_bullet, first_baby) = (first_data.downcast_ref::<Bullet>(), first_data.downcast_ref::<BabyInt>());
+                        let (second_bullet, second_baby) = (second_data.downcast_ref::<Bullet>(), second_data.downcast_ref::<BabyInt>());
+                        match (first_bullet, first_baby, second_bullet, second_baby) {
+                            (Some(bullet), None, None, Some(baby)) => {
+                                println!("First one is the bullet! And the ID is: {:#?}", bullet.uuid);
+                                uuids_to_remove.insert(0, bullet.uuid)
+                            }
+                            (None, Some(baby), Some(bullet), None) => {
+                                println!("Second one is the bullet!");
+                            }
+                            (_, _, _, _) => {}
                         }
                     }
                 }
             }
             ContactEvent::Stopped(_first_handle, _second_handle) => {}
         }
+        uuids_to_remove
     }
 
     pub fn render(&self, _context: Context, transform: Matrix2d, graphics: &mut GlGraphics) {
