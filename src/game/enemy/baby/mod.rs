@@ -1,5 +1,5 @@
 use crate::game::enemy::Enemy;
-use crate::game::insertable::{Insertable, Inserted};
+use crate::game::insertable::{Insertable, Inserted, InsertedBody};
 use nalgebra::{Isometry2, Vector2};
 use ncollide2d::shape::{Cuboid, ShapeHandle};
 use nphysics2d::object::{
@@ -24,26 +24,6 @@ pub struct InsertedBaby {
 }
 
 impl InsertedBaby {
-    pub fn get_body_handle(&self) -> DefaultBodyHandle {
-        self.inserted.get_body_handle()
-    }
-
-    pub fn get_sprite_uuid(&self) -> Uuid {
-        self.inserted.get_sprite_uuid()
-    }
-
-    pub fn update(&self, world: &DefaultBodySet<f64>, scene: &mut Scene<Texture>) {
-        if let Some(bullet_sprite) = scene.child_mut(self.inserted.get_sprite_uuid()) {
-            if let Some(rigid_body) = world.rigid_body(self.inserted.get_body_handle()) {
-                let rigid_body_pos = rigid_body.position().translation.vector;
-                let (x_pos, y_pos) = (rigid_body_pos[0], rigid_body_pos[1]);
-                bullet_sprite.set_position(x_pos, y_pos);
-
-                //                bullet_sprite.set_rotation(rigid_body.position().rotation.angle() * 57.29578);
-            }
-        }
-    }
-
     pub fn new(
         sprite_uuid: Uuid,
         body_handle: DefaultBodyHandle,
@@ -54,6 +34,26 @@ impl InsertedBaby {
             inserted,
             health: 32,
         }
+    }
+}
+
+impl InsertedBody for InsertedBaby {
+    fn update(&self, world: &DefaultBodySet<f64>, scene: &mut Scene<Texture>) {
+        if let Some(bullet_sprite) = scene.child_mut(self.inserted.get_sprite_uuid()) {
+            if let Some(rigid_body) = world.rigid_body(self.inserted.get_body_handle()) {
+                let rigid_body_pos = rigid_body.position().translation.vector;
+                let (x_pos, y_pos) = (rigid_body_pos[0], rigid_body_pos[1]);
+                bullet_sprite.set_position(x_pos, y_pos);
+            }
+        }
+    }
+
+    fn get_body_handle(&self) -> DefaultBodyHandle {
+        self.inserted.get_body_handle()
+    }
+
+    fn get_sprite_uuid(&self) -> Uuid {
+        self.inserted.get_sprite_uuid()
     }
 }
 

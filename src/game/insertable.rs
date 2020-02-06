@@ -1,6 +1,9 @@
 use nalgebra::Isometry2;
-use nphysics2d::object::{ColliderDesc, DefaultBodyHandle, DefaultColliderHandle, RigidBody};
+use nphysics2d::object::{
+    ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderHandle, RigidBody,
+};
 use opengl_graphics::Texture;
+use sprite::Scene;
 use std::rc::Rc;
 use uuid::Uuid;
 
@@ -115,4 +118,10 @@ impl Inserted {
     pub fn get_body_handle(&self) -> DefaultBodyHandle {
         self.physics_inserted.body_handle
     }
+}
+
+pub trait InsertedBody {
+    fn update(&self, world: &DefaultBodySet<f64>, scene: &mut Scene<Texture>);
+    fn get_body_handle(&self) -> DefaultBodyHandle;
+    fn get_sprite_uuid(&self) -> Uuid;
 }

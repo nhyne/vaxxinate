@@ -1,6 +1,6 @@
 use crate::game::bullet::{Bullet, InsertedBullet};
 use crate::game::enemy::baby::{BabyIdentifier, InsertedBaby};
-use crate::game::insertable::{Insertable, Inserted};
+use crate::game::insertable::{Insertable, Inserted, InsertedBody};
 use crate::game::physics_world::PhysicsWorld;
 use crate::game::player::character::Character;
 use input::MouseButton;
@@ -55,6 +55,7 @@ impl World {
     ) -> (InsertedBaby, Uuid) {
         // Temporary code
         let (baby_insertable, uuid) = BabyIdentifier::generate_insertable(Vector2::new(10.0, 10.0));
+
         let (sprite_tex, rigid_body, collider_desc_option) = baby_insertable.get_parts();
         let mut baby_sprite = Sprite::from_texture(sprite_tex);
         baby_sprite.set_position(249.0, 250.0);
@@ -80,29 +81,30 @@ impl World {
 
     pub fn update(&mut self) {
         let (body_set, _) = self.physics_world.body_collider_sets_mut();
-        self.character
-            .update(body_set, &self.keys_pressed, &mut self.scene);
+        let scene = &mut self.scene;
+        self.character.update(body_set, &self.keys_pressed, scene);
 
         self.character
             .update_rotation(self.mouse_position, body_set);
 
         // TODO: These should be turned into iterators
-        for bullet in self.bullets.values() {
-            bullet.update(body_set, &mut self.scene);
-        }
+        let _: Vec<_> = self
+            .bullets
+            .values()
+            .map(|b| {
+                b.update(body_set, scene);
+            })
+            .collect();
 
-        for baby in self.babies.values() {
-            baby.update(body_set, &mut self.scene);
-        }
+        let _: Vec<_> = self
+            .babies
+            .values()
+            .map(|b| {
+                b.update(body_set, scene);
+            })
+            .collect();
 
         self.handle_contact_events();
-        //        let contact_events = self.physics_world.geometric_world().contact_events().iter();
-        //        contact_events.map(|ce| {
-        //            self.handle_contact_event(ce);
-        //        });
-        //        for contact_event in contact_events {
-        //            self.handle_contact_event(contact_event);
-        //        }
     }
 
     // TODO: Too long to calculate these events in every loop
@@ -153,7 +155,7 @@ impl World {
                 self.physics_world
                     .body_set_mut()
                     .remove(bullet_removed.get_body_handle());
-                self.scene.remove_child(bullet_removed.get_sprite_id());
+                self.scene.remove_child(bullet_removed.get_sprite_uuid());
             }
         }
         for baby_to_remove in babies_to_remove {
@@ -192,6 +194,7 @@ impl World {
                 }
                 Button::Mouse(mouse_button) => {
                     if let MouseButton::Left = mouse_button {
+                        // TODO: Make these matches their own functions
                         let player_position = self.character.get_position(body_set);
                         let player_rotation = self.character.get_rotation(body_set);
                         let (bullet, bullet_uuid) =
@@ -213,18 +216,14 @@ impl World {
 
     pub fn insert_insertable(&mut self, to_insert: Insertable) -> Inserted {
         let (sprite_tex, physics_insertable) = to_insert.get_parts_insertable();
-        // TODO: Does this belong in the Insertable struct or as a param here?
-        //       How would a "spawn" call on an enemy type work with this?
-        let id = self.insert_sprite(sprite_tex, Vector2::new(250.0, 250.0));
+        let id = self.insert_sprite(sprite_tex);
 
         let physics_inserted = self.physics_world.insert(physics_insertable);
         Inserted::new_from_physics(id, physics_inserted)
     }
 
-    fn insert_sprite(&mut self, sprite_tex: Rc<Texture>, initial_position: Vector2<f64>) -> Uuid {
-        let mut sprite = Sprite::from_texture(sprite_tex);
-        sprite.set_position(initial_position[0], initial_position[1]);
-        self.scene.add_child(sprite)
+    fn insert_sprite(&mut self, sprite_tex: Rc<Texture>) -> Uuid {
+        self.scene.add_child(Sprite::from_texture(sprite_tex))
     }
 }
 
