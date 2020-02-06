@@ -16,7 +16,7 @@ const BULLET_SPAWN_OFFSET: f64 = 35.0;
 const BULLET_SPEED: f64 = 250.0;
 
 #[derive(Clone)]
-pub struct Bullet {
+pub struct BulletUserData {
     damage: u32,
     pub uuid: Uuid,
 }
@@ -25,16 +25,17 @@ pub struct InsertedBullet {
     inserted: Inserted,
 }
 
-impl Bullet {
+impl BulletUserData {
     // takes rotation in RADIANS
     pub fn generate_insertable(
         initial_position: Vector2<f64>,
         rotation_rad: f64,
     ) -> (Insertable, Uuid) {
         let bullet_uuid = Uuid::new_v4();
-        let bullet_collider = Bullet::generate_bullet_collider_desc();
-        let bullet_body = Bullet::generate_bullet_body(initial_position, rotation_rad, bullet_uuid);
-        let tex = Bullet::generate_bullet_texture();
+        let bullet_collider = BulletUserData::generate_bullet_collider_desc();
+        let bullet_body =
+            BulletUserData::generate_bullet_body(initial_position, rotation_rad, bullet_uuid);
+        let tex = BulletUserData::generate_bullet_texture();
 
         (
             Insertable::new(tex, bullet_body, Some(bullet_collider)),
@@ -64,7 +65,7 @@ impl Bullet {
         rotation_rad: f64,
         bullet_uuid: Uuid,
     ) -> RigidBody<f64> {
-        let directional_unit_vector = Bullet::bullet_directional_unit_vector(rotation_rad);
+        let directional_unit_vector = BulletUserData::bullet_directional_unit_vector(rotation_rad);
         let velocity_vector: Vector2<f64> = Vector2::new(
             directional_unit_vector[0] * BULLET_SPEED,
             directional_unit_vector[1] * BULLET_SPEED,
@@ -76,7 +77,7 @@ impl Bullet {
                 initial_position[1] + BULLET_SPAWN_OFFSET * directional_unit_vector[1],
             ))
             .velocity(Velocity2::new(velocity_vector, 0.0))
-            .user_data(Bullet {
+            .user_data(BulletUserData {
                 damage: 100,
                 uuid: bullet_uuid,
             })

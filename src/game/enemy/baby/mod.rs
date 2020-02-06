@@ -14,7 +14,7 @@ const BABY_BODY_WIDTH: f64 = 50.0;
 const BABY_BODY_HEIGHT: f64 = 25.0;
 
 #[derive(Clone)]
-pub struct BabyIdentifier {
+pub struct BabyUserData {
     pub uuid: Uuid,
     health: u32,
 }
@@ -30,10 +30,7 @@ impl InsertedBaby {
         collider_handle: Option<DefaultColliderHandle>,
     ) -> Self {
         let inserted = Inserted::new(sprite_uuid, body_handle, collider_handle);
-        InsertedBaby {
-            inserted,
-            health: 32,
-        }
+        InsertedBaby { inserted }
     }
 }
 
@@ -57,7 +54,7 @@ impl InsertedBody for InsertedBaby {
     }
 }
 
-impl BabyIdentifier {
+impl BabyUserData {
     pub fn generate_insertable(_player_position: Vector2<f64>) -> (Insertable, Uuid) {
         let baby_uuid = Uuid::new_v4();
 
@@ -71,7 +68,10 @@ impl BabyIdentifier {
             // TODO: Position should be a random position that is at least a
             //  certain distance away from the player.
             .position(Isometry2::translation(250.0, 250.0))
-            .user_data(BabyIdentifier { uuid: baby_uuid })
+            .user_data(BabyUserData {
+                uuid: baby_uuid,
+                health: 30,
+            })
             .build();
 
         let assets = find_folder::Search::ParentsThenKids(3, 3)

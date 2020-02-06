@@ -7,6 +7,8 @@ use sprite::Scene;
 use std::rc::Rc;
 use uuid::Uuid;
 
+// TODO: Should the actual "insert" methods exist in here? Or would that make the insertables know too much about the world they're being put into?
+
 pub struct PhysicsInsertable {
     rigid_body: RigidBody<f64>,
     // This is optional in case something does not want to collide

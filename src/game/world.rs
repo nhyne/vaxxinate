@@ -1,5 +1,5 @@
-use crate::game::bullet::{Bullet, InsertedBullet};
-use crate::game::enemy::baby::{BabyIdentifier, InsertedBaby};
+use crate::game::bullet::{BulletUserData, InsertedBullet};
+use crate::game::enemy::baby::{BabyUserData, InsertedBaby};
 use crate::game::insertable::{Insertable, Inserted, InsertedBody};
 use crate::game::physics_world::PhysicsWorld;
 use crate::game::player::character::Character;
@@ -56,7 +56,7 @@ impl World {
         collider_set: &mut DefaultColliderSet<f64>,
     ) -> (InsertedBaby, Uuid) {
         // Temporary code
-        let (baby_insertable, uuid) = BabyIdentifier::generate_insertable(Vector2::new(10.0, 10.0));
+        let (baby_insertable, uuid) = BabyUserData::generate_insertable(Vector2::new(10.0, 10.0));
 
         let (sprite_tex, rigid_body, collider_desc_option) = baby_insertable.get_parts();
         let mut baby_sprite = Sprite::from_texture(sprite_tex);
@@ -134,12 +134,12 @@ impl World {
                             (first_body.user_data(), second_body.user_data())
                         {
                             let (first_bullet, first_baby) = (
-                                first_data.downcast_ref::<Bullet>(),
-                                first_data.downcast_ref::<BabyIdentifier>(),
+                                first_data.downcast_ref::<BulletUserData>(),
+                                first_data.downcast_ref::<BabyUserData>(),
                             );
                             let (second_bullet, second_baby) = (
-                                second_data.downcast_ref::<Bullet>(),
-                                second_data.downcast_ref::<BabyIdentifier>(),
+                                second_data.downcast_ref::<BulletUserData>(),
+                                second_data.downcast_ref::<BabyUserData>(),
                             );
                             match (first_bullet, first_baby, second_bullet, second_baby) {
                                 (Some(bullet), None, None, Some(baby))
@@ -221,7 +221,8 @@ impl World {
         let body_set = self.physics_world.body_set();
         let player_position = self.character.get_position(body_set);
         let player_rotation = self.character.get_rotation(body_set);
-        let (bullet, bullet_uuid) = Bullet::generate_insertable(player_position, player_rotation);
+        let (bullet, bullet_uuid) =
+            BulletUserData::generate_insertable(player_position, player_rotation);
         let inserted_bullet = self.insert_insertable(bullet);
         self.bullets
             .insert(bullet_uuid, InsertedBullet::new(inserted_bullet));
