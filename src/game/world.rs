@@ -16,6 +16,7 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use uuid::Uuid;
 
+/// World struct. Contains the physics world, sprite scene, and other things that we need to keep track of and react to during the game loop.
 pub struct World {
     physics_world: PhysicsWorld,
     scene: Scene<Texture>,
@@ -48,6 +49,7 @@ impl World {
         }
     }
 
+    // TODO: This should probably just insert the baby? Or something else should determine when to spawn.
     fn insert_baby(
         scene: &mut Scene<Texture>,
         body_set: &mut DefaultBodySet<f64>,
@@ -75,10 +77,12 @@ impl World {
         }
     }
 
+    /// Steps the physics world forward.
     pub fn step(&mut self) {
         self.physics_world.step();
     }
 
+    /// Updates all of the parts of the world that change during steps.
     pub fn update(&mut self) {
         let (body_set, _) = self.physics_world.body_collider_sets_mut();
         let scene = &mut self.scene;
@@ -87,7 +91,6 @@ impl World {
         self.character
             .update_rotation(self.mouse_position, body_set);
 
-        // TODO: These should be turned into iterators
         let _: Vec<_> = self
             .bullets
             .values()
@@ -112,6 +115,8 @@ impl World {
     //  Long enough that the game is taking too long to spawn a bullet on click and delays it to the next click.
     //  May have to do this less frequently?
     //  During a different game event?
+    /// Handles effects that contact events have on the world.
+    /// Used to de-spawn bullets when they collide and other events that occur when two things collide.
     fn handle_contact_events(&mut self) {
         let mut bullets_to_remove: Vec<Uuid> = vec![];
         let mut babies_to_remove: Vec<Uuid> = vec![];
@@ -168,16 +173,14 @@ impl World {
         }
     }
 
+    /// Render the game. Currently we just need to clear the stencil and let the sprite world draw.
     pub fn render(&self, _context: Context, transform: Matrix2d, graphics: &mut GlGraphics) {
         clear([0.8, 0.8, 0.8, 1.0], graphics);
         graphics.clear_stencil(0);
-
         self.scene.draw(transform, graphics);
     }
 
     pub fn handle_mouse(&mut self, motion: Motion) {
-        // Want to change the rotation of the player
-        // Should just set the rotation of the player and the the player render function actually handle rendering
         if let Motion::MouseCursor(motion) = motion {
             let body_set = self.physics_world.body_set_mut();
             self.mouse_position = motion;
@@ -186,7 +189,6 @@ impl World {
     }
 
     pub fn handle_button_event(&mut self, key: ButtonArgs) {
-        let body_set = self.physics_world.body_set();
         match key.state {
             ButtonState::Press => match key.button {
                 Button::Keyboard(key) => {
@@ -194,14 +196,7 @@ impl World {
                 }
                 Button::Mouse(mouse_button) => {
                     if let MouseButton::Left = mouse_button {
-                        // TODO: Make these matches their own functions
-                        let player_position = self.character.get_position(body_set);
-                        let player_rotation = self.character.get_rotation(body_set);
-                        let (bullet, bullet_uuid) =
-                            Bullet::generate_insertable(player_position, player_rotation);
-                        let inserted_bullet = self.insert_insertable(bullet);
-                        self.bullets
-                            .insert(bullet_uuid, InsertedBullet::new(inserted_bullet));
+                        self.left_mouse_click();
                     }
                 }
                 _ => {}
@@ -220,6 +215,16 @@ impl World {
 
         let physics_inserted = self.physics_world.insert(physics_insertable);
         Inserted::new_from_physics(id, physics_inserted)
+    }
+
+    fn left_mouse_click(&mut self) {
+        let body_set = self.physics_world.body_set();
+        let player_position = self.character.get_position(body_set);
+        let player_rotation = self.character.get_rotation(body_set);
+        let (bullet, bullet_uuid) = Bullet::generate_insertable(player_position, player_rotation);
+        let inserted_bullet = self.insert_insertable(bullet);
+        self.bullets
+            .insert(bullet_uuid, InsertedBullet::new(inserted_bullet));
     }
 
     fn insert_sprite(&mut self, sprite_tex: Rc<Texture>) -> Uuid {

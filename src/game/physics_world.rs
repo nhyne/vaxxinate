@@ -5,6 +5,7 @@ use nphysics2d::joint::DefaultJointConstraintSet;
 use nphysics2d::object::{BodyPartHandle, DefaultBodySet, DefaultColliderSet};
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 
+/// PhysicsWorld is a wrapper around the physics elements in nphysics.
 pub struct PhysicsWorld {
     mechanical_world: DefaultMechanicalWorld<f64>,
     geometric_world: DefaultGeometricalWorld<f64>,
