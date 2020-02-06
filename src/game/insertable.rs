@@ -13,6 +13,8 @@ pub struct PhysicsInsertable {
     collider_desc: Option<ColliderDesc<f64>>,
 }
 
+/// Represents and object that can be inserted into the physics world.
+/// When inserted into the world a PhysicsInsertable should be returned to keep track of the objects in the physics world.
 impl PhysicsInsertable {
     fn new(
         rigid_body: RigidBody<f64>,
@@ -38,6 +40,7 @@ pub struct PhysicsInserted {
     collider_handle: Option<DefaultColliderHandle>,
 }
 
+/// Represents an object that has been inserted into the physics world.
 impl PhysicsInserted {
     pub fn new(
         body_handle: DefaultBodyHandle,
@@ -59,6 +62,8 @@ pub struct Insertable {
     physics_insertable: PhysicsInsertable,
 }
 
+/// Represents and object that can be inserted into the physics and sprite worlds.
+/// When inserted into the world an Inserted should be returned to track the sprite and physics objects.
 impl Insertable {
     pub fn new(
         texture: Rc<Texture>,
@@ -86,6 +91,9 @@ impl Insertable {
     }
 }
 
+/// Represents an item that has been inserted into the physics and sprite worlds.
+/// When two colliders make contact, there should be a Uuid in the user_data of that collider which will point to an Inserted.
+/// Based on actions we need to take, we can apply affects to the Inserted by referencing its handles and sprite Uuid.
 pub struct Inserted {
     sprite_uuid: Uuid,
     physics_inserted: PhysicsInserted,

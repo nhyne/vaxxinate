@@ -16,11 +16,11 @@ const BABY_BODY_HEIGHT: f64 = 25.0;
 #[derive(Clone)]
 pub struct BabyIdentifier {
     pub uuid: Uuid,
+    health: u32,
 }
 
 pub struct InsertedBaby {
     inserted: Inserted,
-    health: u32,
 }
 
 impl InsertedBaby {
