@@ -7,6 +7,7 @@ use zombies::game::world::World;
 
 use input::RenderEvent;
 use piston_window::{Event, EventSettings, Events, Input, Loop};
+use zombies::config::settings::Settings;
 
 fn main() {
     // Currently this needs to be instantiated before the world
@@ -14,6 +15,7 @@ fn main() {
     let mut game_view = View::default();
     let mut game_world = World::new();
     let mut events = Events::new(EventSettings::new());
+    let _s = Settings::new();
 
     while let Some(event) = events.next(&mut game_view.window) {
         match event {
