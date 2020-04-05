@@ -17,7 +17,6 @@ impl Settings {
          // Start off by merging in the "default" configuration file
         s.merge(File::with_name("config/default"))?;
 
-
         // Add in the current environment file
         // Default to 'development' env
         // Note that this file is _optional_
