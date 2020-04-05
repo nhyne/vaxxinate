@@ -1,40 +1,42 @@
+use config::{Config, ConfigError, Environment, File};
 use std::env;
-use config::{ConfigError, Config, File, Environment};
 
 #[derive(Debug, Deserialize)]
-struct Game {
-    something: String,
+pub struct Window {
+    pub width: f64,
+    pub height: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Point {
+    pub x: f64,
+    pub y: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Player {
+    pub spawn_point: Point,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    something: String
+    pub window: Window,
+    pub player: Player,
 }
 
 impl Settings {
+    // From: https://github.com/mehcode/config-rs/blob/0.9.3/examples/hierarchical-env/src/settings.rs
     pub fn new() -> Result<Self, ConfigError> {
         let mut s = Config::new();
-         // Start off by merging in the "default" configuration file
         s.merge(File::with_name("config/default"))?;
 
-        // Add in the current environment file
-        // Default to 'development' env
-        // Note that this file is _optional_
-        let env = env::var("RUN_MODE").unwrap_or("development".into());
+        let env = env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
         s.merge(File::with_name(&format!("config/{}", env)).required(false))?;
 
-        // Add in a local configuration file
-        // This file shouldn't be checked in to git
         s.merge(File::with_name("config/local").required(false))?;
 
-        // Add in settings from the environment (with a prefix of APP)
-        // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
-        s.merge(Environment::with_prefix("ZOMBIES"))?;
+        s.merge(Environment::with_prefix("ZOMBIES_"))?;
 
-        // Now that we're done, let's access our configuration
-        println!("database: {:?}", s.get::<String>("something"));
-
-        // You can deserialize (and thus freeze) the entire configuration as
         s.try_into()
     }
 }

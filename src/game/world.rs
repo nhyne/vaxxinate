@@ -1,3 +1,4 @@
+use crate::config::settings::Settings;
 use crate::game::bullet::{BulletUserData, InsertedBullet};
 use crate::game::enemy::baby::{BabyUserData, InsertedBaby};
 use crate::game::insertable::{Insertable, Inserted, InsertedBody};
@@ -28,11 +29,16 @@ pub struct World {
 }
 
 impl World {
-    pub fn new() -> World {
+    pub fn new(config: &Settings) -> World {
         let mut scene: Scene<Texture> = Scene::new();
         let mut physics_world = PhysicsWorld::new();
         let (body_set, collider_set) = physics_world.body_collider_sets_mut();
-        let character = Character::new(body_set, collider_set, (100.0, 100.0), &mut scene);
+        let character = Character::new(
+            body_set,
+            collider_set,
+            (config.player.spawn_point.x, config.player.spawn_point.y),
+            &mut scene,
+        );
 
         let (test_baby, test_baby_uuid) = World::insert_baby(&mut scene, body_set, collider_set);
         let mut babies = HashMap::new();
@@ -230,11 +236,5 @@ impl World {
 
     fn insert_sprite(&mut self, sprite_tex: Rc<Texture>) -> Uuid {
         self.scene.add_child(Sprite::from_texture(sprite_tex))
-    }
-}
-
-impl Default for World {
-    fn default() -> Self {
-        Self::new()
     }
 }

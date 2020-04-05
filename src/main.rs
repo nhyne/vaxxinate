@@ -10,12 +10,13 @@ use piston_window::{Event, EventSettings, Events, Input, Loop};
 use zombies::config::settings::Settings;
 
 fn main() {
+    let config = Settings::new().unwrap();
     // Currently this needs to be instantiated before the world
     //      because the open_gl initiation occurs in it
-    let mut game_view = View::default();
-    let mut game_world = World::new();
+    let mut game_view = View::new(&config);
+    let mut game_world = World::new(&config);
+    // TODO: May eventually want to have these event settings as config options
     let mut events = Events::new(EventSettings::new());
-    let _s = Settings::new();
 
     while let Some(event) = events.next(&mut game_view.window) {
         match event {
